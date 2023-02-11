@@ -1,3 +1,4 @@
+![Badge](https://github.com/kalaluthien/yamlang/actions/workflows/unit_test.yaml/badge.svg)
 ![Badge](https://img.shields.io/badge/python-3.11-blue.svg)
 
 # YamLang
