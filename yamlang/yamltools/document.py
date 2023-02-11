@@ -11,6 +11,7 @@ from typing import TypeVar
 from typing import cast
 
 import yaml
+from yaml.constructor import ConstructorError
 
 
 _DocumentT = TypeVar("_DocumentT", bound="Document")
@@ -22,6 +23,19 @@ _T2 = TypeVar("_T2", bound=Document)
 
 
 def load(source: str | Path) -> Document:
+    # Add custom constructors for YamLang.
+    def constructor_bool(loader: yaml.Loader, node: yaml.Node) -> Document:
+        if (value := str(node.value).lower()) == "true":
+            return True
+        elif value == "false":
+            return False
+        else:
+            return loader.construct_scalar(node)
+
+    # Fix default constructors for boolean.
+    yaml.add_constructor("tag:yaml.org,2002:bool", constructor_bool)
+    yaml.add_constructor("tag:yaml.org,2002:python/bool", constructor_bool)
+
     # Load the text from the source.
     if isinstance(source, Path):
         with source.open() as file:

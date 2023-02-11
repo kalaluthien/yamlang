@@ -5,9 +5,14 @@ from yamlang.yamltools import load
 
 
 def test_load_yaml() -> None:
-    document = load(r"{foo: {bar: baz, qux: [12, 34]}, ham: null}")
+    document = load(r"{foo: {bar: baz, qux: [12, 34]}}")
+    assert document == {"foo": {"bar": "baz", "qux": [12, 34]}}
 
-    assert document == {"foo": {"bar": "baz", "qux": [12, 34]}, "ham": None}
+    document = load(r"{foo: null, bar: yes, baz: off, on: true}")
+    assert document == {"foo": None, "bar": "yes", "baz": "off", "on": True}
+
+    document = load(r"{foo: &A {bar: 2.0, baz: 3.0}, qux: *A}")
+    assert document == {"foo": {"bar": 2.0, "baz": 3.0}, "qux": {"bar": 2.0, "baz": 3.0}}
 
 
 def test_map_yaml() -> None:
