@@ -22,9 +22,6 @@ _T2 = TypeVar("_T2", bound=Document)
 
 
 def load(source: str | Path) -> Document:
-    # Prepare constructors for the YAML tags.
-    yaml.add_constructor("!null", lambda loader, node: None)
-
     # Load the text from the source.
     if isinstance(source, Path):
         with source.open() as file:

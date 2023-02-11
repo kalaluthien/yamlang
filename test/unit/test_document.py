@@ -11,26 +11,32 @@ def test_load_yaml() -> None:
 
 
 def test_map_yaml() -> None:
-    document: Document = {"foo": "bar", "baz": 1}
-
     def value_to_upper(x: dict[str, Document]) -> dict[str, Document]:
         return {k: v.upper() for k, v in x.items() if isinstance(v, str)}
 
-    result = Map(on_object=value_to_upper)(document)
+    map = Map[Document](on_object=value_to_upper)
 
-    assert result == {"foo": "BAR"}
+    document = {"foo": "bar", "baz": 1}
+    assert map(document) == {"foo": "BAR"}
+
+    document = {"foo": ["bar", "baz"], "ham": "egg"}
+    assert map(document) == {"ham": "EGG"}
 
 
 def test_fold_map_yaml() -> None:
-    document: Document = {
-        "foo": {"bar": 1, "qux": 2, "ham": [3, 4], "egg": {"foo": 5, "bar": 6}}
-    }
-
     def increment(x: int) -> Document:
         return x + 1
 
-    result = FoldMap(on_integer=increment)(document)
+    fold_map = FoldMap[Document](on_integer=increment)
 
-    assert result == {
-        "foo": {"bar": 2, "qux": 3, "ham": [4, 5], "egg": {"foo": 6, "bar": 7}}
-    }
+    document: Document = [1, 2, 3]
+    assert fold_map(document) == [2, 3, 4]
+
+    document = {"foo": 1, "bar": 2}
+    assert fold_map(document) == {"foo": 2, "bar": 3}
+
+    document = {"foo": [1, 2], "bar": 3}
+    assert fold_map(document) == {"foo": [2, 3], "bar": 4}
+
+    document = {"foo": {"bar": 4, "baz": 5}, "ham": 6}
+    assert fold_map(document) == {"foo": {"bar": 5, "baz": 6}, "ham": 7}
