@@ -1,12 +1,11 @@
-from yamlang.yamltools import Document
-from yamlang.yamltools import Pattern
 from yamlang.yamltools import BoolPattern as Bool
-from yamlang.yamltools import IntPattern as Int
-from yamlang.yamltools import FloatPattern as Float
-from yamlang.yamltools import StrPattern as Str
-from yamlang.yamltools import ListPattern as List
 from yamlang.yamltools import DictPattern as Dict
-
+from yamlang.yamltools import Document
+from yamlang.yamltools import FloatPattern as Float
+from yamlang.yamltools import IntPattern as Int
+from yamlang.yamltools import ListPattern as List
+from yamlang.yamltools import Pattern
+from yamlang.yamltools import StrPattern as Str
 
 SENTINEL_LITERAL_STR = "__SENTINEL_LITERAL_STR__"
 
@@ -856,7 +855,7 @@ def test_mapping_or_pattern() -> None:
     )
 
 
-def test_list_item_pattern() -> None:
+def test_list_access_pattern() -> None:
     assert match_success(List(Int())[0], [1, 2, 3, 4], 1)
     assert match_success(List(Int())[2], [1, 2, 3, 4], 3)
     assert match_success(List(Int())[-1], [1, 2, 3, 4], 4)
@@ -887,3 +886,23 @@ def test_list_item_pattern() -> None:
     assert match_failure((List(Int()) | List(Str()))[1], [1, "A", "B"])
     assert match_failure((List(Int()) | List(Str()))[2], [1, "A", "B"])
     assert match_failure((List(Int()) | List(Str()))[-1], [1, "A", "B"])
+
+
+def test_dict_access_pattern() -> None:
+    assert match_success(Dict({"a": Int()})["a"], {"a": 1}, 1)
+    assert match_failure(Dict({"a": Int()})["a"], {})
+
+    assert match_success(Dict({"a": Int() | None})["a"], {"a": 1}, 1)
+    assert match_success(Dict({"a": Int() | None})["a"], {"a": "A"}, None)
+
+    assert match_success(Dict({"a": Int(), "b": Str()})["b"], {"a": 1, "b": "A"}, "A")
+    assert match_failure(Dict({"a": Int(), "b": Str()})["b"], {"a": 1})
+    assert match_failure(Dict({"a": Int(), "b": Str()})["b"], {"b": "A"})
+    assert match_failure(Dict({"a": Int(), "b": Str()})["b"], {"a": "A", "b": "B"})
+
+    assert match_success(Dict({"a": Int() | Str()})["a"], {"a": 1}, 1)
+    assert match_success(Dict({"a": Int() | Str()})["a"], {"a": "A"}, "A")
+    assert match_success(Dict({"a": Int() | Str()})["a"], {"a": [1, 2]}, (1, 2))
+    assert match_success(Dict({"a": Int() | Str()})["a"], {"a": ["A", 2]}, (2, "A"))
+    assert match_failure(Dict({"a": Int() | Str()})["a"], {"a": False})
+    assert match_failure(Dict({"a": Int() | Str()})["b"], {"a": [1, "A"]})

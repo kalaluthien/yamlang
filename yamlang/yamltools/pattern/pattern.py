@@ -2,14 +2,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Any
-from typing import Self
-from typing import TypeVar
-from typing import final
-from typing import overload
+from typing import Any, Generic, Self, TypeVar, cast, final, overload
 
 from yamlang.yamltools import Document
-
 
 _T = TypeVar("_T", bound="Pattern")
 
@@ -30,39 +25,35 @@ class Pattern(ABC):
     @final
     def __or__(self, __pattern: _T | None) -> Self | _T:
         if __pattern is None:
-            return NullPattern(self.pattern if isinstance(self, NullPattern) else self)
+            return NullPattern(self)
 
-        if isinstance(self, NullPattern):
-            return NullPattern(self.pattern | __pattern)
-
-        if isinstance(__pattern, NullPattern):
-            return NullPattern(self | __pattern.pattern)
-
-        patterns: list[Pattern] = []
-
-        if isinstance(self, OrPattern):
-            patterns.extend(self.patterns)
-        else:
-            patterns.append(self)
-
-        if isinstance(__pattern, OrPattern):
-            patterns.extend(__pattern.patterns)
-        else:
-            patterns.append(__pattern)
-
-        return OrPattern(patterns)
+        return OrPattern([self, __pattern])
 
     @final
     def __rrshift__(self, __pattern: Pattern) -> Self:
         return ThenPattern(__pattern, self)
 
 
-class NullPattern(Pattern):
-    def __init__(self, pattern: Pattern) -> None:
-        self.pattern = pattern
+class FailPattern(Pattern, Generic[_T]):
+    def __new__(cls) -> _T:
+        return cast(_T, super().__new__(cls))
 
     def apply(self, document: Document) -> Iterable[Document]:
-        result = iter(self.pattern.apply(document))
+        return iter(())
+
+    def __getitem__(self, index_or_key: int | str | slice) -> Any:
+        raise TypeError(self)
+
+    def __getattr__(self, name: str) -> Any:
+        raise AttributeError(name, self)
+
+
+class NullPattern(Pattern):
+    def __init__(self, pattern: Pattern) -> None:
+        self.__pattern = pattern
+
+    def apply(self, document: Document) -> Iterable[Document]:
+        result = iter(self.__pattern.apply(document))
 
         try:
             yield next(result)
@@ -71,73 +62,101 @@ class NullPattern(Pattern):
 
         yield from result
 
+    def __getitem__(self, index_or_key: int | str | slice) -> Any:
+        if not hasattr(self.__pattern, "__getitem__"):
+            raise TypeError(self.__pattern)
+
+        candidate = getattr(self.__pattern, "__getitem__")(index_or_key)
+
+        if isinstance(candidate, Pattern):
+            return NullPattern(candidate)
+
+        return candidate
+
     def __getattr__(self, name: str) -> Any:
-        return getattr(self.pattern, name)
+        if not hasattr(self.__pattern, name):
+            raise AttributeError(name, self.__pattern)
+
+        candidate = getattr(self.__pattern, name)
+
+        if isinstance(candidate, Pattern):
+            return NullPattern(candidate)
+
+        return candidate
 
 
 class OrPattern(Pattern):
     def __init__(self, patterns: Iterable[Pattern]) -> None:
-        self.patterns = tuple(patterns)
+        self.__patterns = tuple(patterns)
 
     def apply(self, document: Document) -> Iterable[Document]:
-        for pattern in self.patterns:
+        for pattern in self.__patterns:
             yield from pattern.apply(document)
 
-    def __getattr__(self, name: str) -> Any:
-        candidates = [
-            getattr(pattern, name)
-            for pattern in self.patterns
-            if hasattr(pattern, name)
-        ]
-
-        if not candidates:
-            raise AttributeError(*self.patterns, name=name)
-
-        if all(isinstance(c, Iterable) for c in candidates):
-            return (value for candidate in candidates for value in candidate)
-
-        if all(isinstance(c, Pattern) for c in candidates):
-            pattern = OrPattern(
-                c.pattern if isinstance(c, NullPattern) else c for c in candidates
-            )
-            if any(isinstance(c, NullPattern) for c in candidates):
-                pattern = NullPattern(pattern)
-            return pattern
-
-        return next(iter(candidates))
-
-    def __getitem__(self, index_or_key: int | str) -> Any:
+    def __getitem__(self, index_or_key: int | str | slice) -> Any:
         candidates = [
             getattr(pattern, "__getitem__")(index_or_key)
-            for pattern in self.patterns
+            for pattern in self.__patterns
             if hasattr(pattern, "__getitem__")
         ]
 
         if not candidates:
-            raise TypeError(*self.patterns)
+            raise TypeError(*self.__patterns)
 
         if all(isinstance(c, Iterable) for c in candidates):
             return (value for candidate in candidates for value in candidate)
 
         if all(isinstance(c, Pattern) for c in candidates):
-            pattern = OrPattern(
-                c.pattern if isinstance(c, NullPattern) else c for c in candidates
-            )
-            if any(isinstance(c, NullPattern) for c in candidates):
-                pattern = NullPattern(pattern)
-            return pattern
+            return OrPattern(candidates)
+
+        return next(iter(candidates))
+
+    def __getattr__(self, name: str) -> Any:
+        candidates = [
+            getattr(pattern, name)
+            for pattern in self.__patterns
+            if hasattr(pattern, name)
+        ]
+
+        if not candidates:
+            raise AttributeError(name, *self.__patterns)
+
+        if all(isinstance(c, Iterable) for c in candidates):
+            return (value for candidate in candidates for value in candidate)
+
+        if all(isinstance(c, Pattern) for c in candidates):
+            return OrPattern(candidates)
 
         return next(iter(candidates))
 
 
 class ThenPattern(Pattern):
     def __init__(self, frontend_pattern: Pattern, backend_pattern: Pattern) -> None:
-        self.frontend_pattern = frontend_pattern
-        self.backend_result = backend_pattern
+        self.__frontend_pattern = frontend_pattern
+        self.__backend_pattern = backend_pattern
 
     def apply(self, document: Document) -> Iterable[Document]:
-        for result in self.frontend_pattern.apply(document):
-            yield from self.backend_result.apply(result)
+        for result in self.__frontend_pattern.apply(document):
+            yield from self.__backend_pattern.apply(result)
+
+    def __getitem__(self, index_or_key: int | str | slice) -> Any:
+        if not hasattr(self.__backend_pattern, "__getitem__"):
+            raise TypeError(self.__backend_pattern)
+
+        candidate = getattr(self.__backend_pattern, "__getitem__")(index_or_key)
+
+        if isinstance(candidate, Pattern):
+            return ThenPattern(self, candidate)
+
+        return candidate
 
     def __getattr__(self, name: str) -> Any:
-        return getattr(self.backend_result, name)
+        if not hasattr(self.__backend_pattern, name):
+            raise AttributeError(name, self.__backend_pattern)
+
+        candidate = getattr(self.__backend_pattern, name)
+
+        if isinstance(candidate, Pattern):
+            return ThenPattern(self, candidate)
+
+        return candidate

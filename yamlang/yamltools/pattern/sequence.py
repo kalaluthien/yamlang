@@ -1,10 +1,7 @@
 from abc import abstractmethod
 from collections.abc import Iterable
 from itertools import product
-from typing import Generic
-from typing import TypeVar
-from typing import Self
-from typing import final
+from typing import Generic, Self, TypeVar, final
 
 from yamlang.yamltools import Document
 from yamlang.yamltools.pattern.pattern import Pattern
@@ -28,17 +25,17 @@ class SequencePattern(Pattern, Generic[_T]):
 
 class ListPattern(SequencePattern[_T]):
     def __init__(self, pattern: _T) -> None:
-        self.pattern = pattern
+        self.__pattern = pattern
 
     def apply(self, document: Document) -> Iterable[Document]:
         if isinstance(document, list):
-            for items in product(*(self.pattern.apply(item) for item in document)):
+            for items in product(*(self.__pattern.apply(item) for item in document)):
                 yield list(items)
 
     def __getitem__(self, index: int) -> _T:
-        return ListPattern.GetItemPattern(self, index) >> self.pattern
+        return ListPattern.__GetItemPattern(self, index) >> self.__pattern
 
-    class GetItemPattern(Pattern):
+    class __GetItemPattern(Pattern):
         def __init__(self, pattern: SequencePattern[_T], index: int) -> None:
             self.pattern = pattern
             self.index = index
@@ -53,27 +50,27 @@ class ListPattern(SequencePattern[_T]):
 
 class TakeSequencePattern(SequencePattern[_T]):
     def __init__(self, pattern: SequencePattern[_T], count: int) -> None:
-        self.pattern = pattern
-        self.count = count
+        self.__pattern = pattern
+        self.__count = count
 
     def apply(self, document: Document) -> Iterable[Document]:
-        for result in self.pattern.apply(document):
+        for result in self.__pattern.apply(document):
             if isinstance(result, list):
-                yield result[: self.count]
+                yield result[: self.__count]
 
     def __getitem__(self, index: int) -> _T:
-        return self.pattern[index]
+        return self.__pattern[index]
 
 
 class DropSequencePattern(SequencePattern[_T]):
     def __init__(self, pattern: SequencePattern[_T], count: int) -> None:
-        self.pattern = pattern
-        self.count = count
+        self.__pattern = pattern
+        self.__count = count
 
     def apply(self, document: Document) -> Iterable[Document]:
-        for result in self.pattern.apply(document):
+        for result in self.__pattern.apply(document):
             if isinstance(result, list):
-                yield result[self.count :]
+                yield result[self.__count :]
 
     def __getitem__(self, index: int) -> _T:
-        return self.pattern[index]
+        return self.__pattern[index]
