@@ -8,17 +8,20 @@ from yamlang.yamltools import ListPattern as List
 from yamlang.yamltools import DictPattern as Dict
 
 
+SENTINEL_LITERAL_STR = "__SENTINEL_LITERAL_STR__"
+
+
 def match_success(
     p: Pattern,
     d: Document | tuple[Document, ...],
-    r: Document | tuple[Document, ...] = "__NO_ARGS__",
+    r: Document | tuple[Document, ...] = SENTINEL_LITERAL_STR,
 ) -> bool:
     result = tuple(p.apply(list(d) if isinstance(d, tuple) else d))
     answer = (
         r
         if isinstance(r, tuple)
         else (r,)
-        if r != "__NO_ARGS__"
+        if r != SENTINEL_LITERAL_STR
         else d
         if isinstance(d, tuple)
         else (d,)
