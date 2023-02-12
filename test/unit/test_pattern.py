@@ -11,14 +11,14 @@ from yamlang.yamltools import DictPattern as Dict
 def match_success(
     p: Pattern,
     d: Document | tuple[Document, ...],
-    r: Document | tuple[Document, ...] = None,
+    r: Document | tuple[Document, ...] = "__NO_ARGS__",
 ) -> bool:
     result = tuple(p.apply(list(d) if isinstance(d, tuple) else d))
     answer = (
         r
         if isinstance(r, tuple)
         else (r,)
-        if r is not None
+        if r != "__NO_ARGS__"
         else d
         if isinstance(d, tuple)
         else (d,)
@@ -606,3 +606,48 @@ def test_dict_of_list_pattern() -> None:
             {"a": [1, 4], "b": ["B", "C"]},
         ),
     )
+
+
+def test_scalar_null_pattern() -> None:
+    assert match_success(Bool() | None, True)
+    assert match_success(Bool() | None, False)
+    assert match_success(Bool() | None, None)
+    assert match_success(Bool() | None, 0, None)
+    assert match_success(Bool() | None, 1.0, None)
+    assert match_success(Bool() | None, "", None)
+    assert match_success(Bool() | None, [], None)
+    assert match_success(Bool() | None, {}, None)
+
+
+def test_scalar_or_pattern() -> None:
+    assert match_success(Int() | Str(), 1)
+    assert match_success(Int() | Str(), "A")
+    assert match_success(Int() | Str(), (1, "A"))
+    assert match_success(Int() | Str(), (1, 2, "A", "B"))
+    assert match_success(Int() | Str(), ("A", 1), (1, "A"))
+    assert match_success(Int() | Str(), (1, None, "A", False, 2), (1, 2, "A"))
+    assert match_failure(Int() | Str(), None)
+    assert match_failure(Int() | Str(), [])
+    assert match_failure(Int() | Str(), {})
+    assert match_failure(Int() | Str(), (None, False))
+
+    assert match_success(Int(1) | Int(2) | Str(), 1)
+    assert match_success(Int(1) | Int(2) | Str(), 2)
+    assert match_success(Int(1) | Int(2) | Str(), "")
+    assert match_success(Int(1) | Int(2) | Str(), "A")
+    assert match_success(Int(1) | Int(2) | Str(), (1, 2, "A", "B"))
+    assert match_success(Int(1) | Int(2) | Str(), ("A", 2, 1), (1, 2, "A"))
+    assert match_failure(Int(1) | Int(2) | Str(), 3)
+    assert match_failure(Int(1) | Int(2) | Str(), None)
+    assert match_failure(Int(1) | Int(2) | Str(), [])
+    assert match_failure(Int(1) | Int(2) | Str(), {})
+
+    assert match_success(Int(1) | Int(2) | Str() | None, 1)
+    assert match_success(Int(1) | Int(2) | Str() | None, 2)
+    assert match_success(Int(1) | Int(2) | Str() | None, 3, None)
+    assert match_success(Int(1) | Int(2) | Str() | None, "")
+    assert match_success(Int(1) | Int(2) | Str() | None, "A")
+    assert match_success(Int(1) | Int(2) | Str() | None, None)
+    assert match_success(Int(1) | Int(2) | Str() | None, (None,))
+    assert match_success(Int(1) | Int(2) | Str() | None, (None, 1), (1,))
+    assert match_success(Int(1) | Int(2) | Str() | None, (2, "A", None, 1), (1, 2, "A"))
