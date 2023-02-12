@@ -42,6 +42,11 @@ def test_bool_pattern() -> None:
 
     assert match_success(Bool(), (True, False, True))
     assert match_success(Bool(), (True, False, None), (True, False))
+    assert match_success(
+        Bool(),
+        ([True, False], [False, [False, True]], True),
+        (True, False, False, False, True, True),
+    )
 
     assert match_success(Bool(True), True)
     assert match_failure(Bool(True), None)
@@ -197,6 +202,42 @@ def test_list_pattern() -> None:
     assert match_failure(List(Bool()), [[], False, [True, False]])
     assert match_failure(List(Bool()), [[]])
 
+    assert match_success(
+        List(Bool()),
+        [
+            [[True, False], True, [True, False]],
+            [True, [False, True], [True], [[False]]],
+            False,
+        ],
+        (
+            [True, True, False],
+            [True, False, False],
+            [True, True, False],
+            [True, True, False],
+            [True, False, False],
+            [False, True, False],
+            [False, False, False],
+            [False, True, False],
+            [False, True, False],
+            [False, False, False],
+            [True, True, False],
+            [True, False, False],
+            [True, True, False],
+            [True, True, False],
+            [True, False, False],
+            [True, True, False],
+            [True, False, False],
+            [True, True, False],
+            [True, True, False],
+            [True, False, False],
+            [False, True, False],
+            [False, False, False],
+            [False, True, False],
+            [False, True, False],
+            [False, False, False],
+        ),
+    )
+
 
 def test_nested_list_pattern() -> None:
     assert match_success(List(List(Bool())), [])
@@ -229,7 +270,7 @@ def test_nested_list_pattern() -> None:
     )
     assert match_success(
         List(List(Bool())),
-        [[[True, False], [False, True]], [[False, True]], [True, False]],
+        [[[True, False], [False, [True]]], [[False, True]], [[True], False]],
         (
             [[True, False], [False], [True, False]],
             [[True, False], [True], [True, False]],
@@ -412,5 +453,156 @@ def test_nested_dict_pattern() -> None:
             {"a": {"b": 3}, "b": {"a": "A"}},
             {"a": {"b": 3}, "b": {"a": "B"}},
             {"a": {"b": 3}, "b": {"a": "C"}},
+        ),
+    )
+
+
+def test_list_of_dict_pattern() -> None:
+    assert match_success(
+        List(Dict({"a": Int(), "b": Str()})),
+        [{"a": 1, "b": "A"}, {"a": 2, "b": "B"}],
+        [{"a": 1, "b": "A"}, {"a": 2, "b": "B"}],
+    )
+    assert match_success(
+        List(Dict({"a": Int(), "b": Str()})),
+        [{"a": 1, "b": "A"}, {"a": 2, "b": ["B", None]}],
+        [{"a": 1, "b": "A"}, {"a": 2, "b": "B"}],
+    )
+    assert match_success(
+        List(Dict({"a": Int(), "b": Str()})),
+        [{"a": [1, 2], "b": ["A", "B"]}, {"a": 3, "b": "C"}],
+        (
+            [{"a": 1, "b": "A"}, {"a": 3, "b": "C"}],
+            [{"a": 1, "b": "B"}, {"a": 3, "b": "C"}],
+            [{"a": 2, "b": "A"}, {"a": 3, "b": "C"}],
+            [{"a": 2, "b": "B"}, {"a": 3, "b": "C"}],
+        ),
+    )
+    assert match_success(
+        List(Dict({"a": Int(), "b": Str()})),
+        [
+            [{"a": 1, "b": "A"}, {"a": [2, 4], "b": "B"}],
+            {"a": 3, "b": "C"},
+        ],
+        (
+            [{"a": 1, "b": "A"}, {"a": 3, "b": "C"}],
+            [{"a": 2, "b": "B"}, {"a": 3, "b": "C"}],
+            [{"a": 4, "b": "B"}, {"a": 3, "b": "C"}],
+        ),
+    )
+    assert match_success(
+        List(Dict({"a": Int(1), "b": Str("B")})),
+        [
+            [{"a": [1, 2], "b": ["B", "C", "B"]}],
+            [{"a": [1, 2], "b": "B"}],
+        ],
+        (
+            [{"a": 1, "b": "B"}, {"a": 1, "b": "B"}],
+            [{"a": 1, "b": "B"}, {"a": 1, "b": "B"}],
+        ),
+    )
+    assert match_failure(
+        List(Dict({"a": Int(), "b": Str()})),
+        [{"a": 1, "b": "A"}, None],
+    )
+    assert match_failure(
+        List(Dict({"a": Int(), "b": Str()})),
+        [{"a": 1, "b": "A"}, {"a": 2, "b": None}],
+    )
+    assert match_failure(
+        List(Dict({"a": Int(), "b": Str()})),
+        [{"a": 1, "b": []}, {"a": 2, "b": "B"}],
+    )
+    assert match_failure(
+        List(Dict({"a": Int(1), "b": Str("B")})),
+        [{"a": 1, "b": "A"}, {"a": 2, "b": "B"}],
+    )
+    assert match_failure(
+        List(Dict({"a": Int(1), "b": Str("B")})),
+        [[{"a": 1, "b": "A"}, {"a": 2, "b": "B"}]],
+    )
+
+
+def test_dict_of_list_pattern() -> None:
+    assert match_success(
+        Dict({"a": List(Int()), "b": List(Str())}),
+        {"a": [1, 2], "b": ["A", "B"]},
+    )
+    assert match_success(
+        Dict({"a": List(Int()), "b": List(Str())}),
+        {"a": [1, 2], "b": [["A", "B"], "C"]},
+        (
+            {"a": [1, 2], "b": ["A", "C"]},
+            {"a": [1, 2], "b": ["B", "C"]},
+        ),
+    )
+    assert match_success(
+        Dict({"a": List(Int()), "b": List(Str())}),
+        {"a": [1, [2, 3]], "b": [["A", "B", None], "C"]},
+        (
+            {"a": [1, 2], "b": ["A", "C"]},
+            {"a": [1, 2], "b": ["B", "C"]},
+            {"a": [1, 3], "b": ["A", "C"]},
+            {"a": [1, 3], "b": ["B", "C"]},
+        ),
+    )
+    assert match_success(
+        Dict({"a": List(Int()), "b": List(Str())}),
+        {"a": [], "b": [], "c": []},
+        {"a": [], "b": []},
+    )
+    assert match_success(
+        Dict({"a": List(Int()), "b": List(Str()), "c": List(Bool())}),
+        {"a": [1], "b": [], "c": [], "d": None},
+        {"a": [1], "b": [], "c": []},
+    )
+    assert match_success(
+        Dict({"a": List(Int()), "b": List(Str()), "c": List(Bool())}),
+        {"a": [], "b": ["B"], "c": [], "d": None},
+        {"a": [], "b": ["B"], "c": []},
+    )
+    assert match_success(
+        Dict({"a": List(Int()), "b": List(Str())}),
+        {"a": [[1, 2, 3], [4, None, 5]], "b": ["A", ["B", "C"], ["D", None]]},
+        (
+            {"a": [1, 4], "b": ["A", "B", "D"]},
+            {"a": [1, 4], "b": ["A", "C", "D"]},
+            {"a": [1, 5], "b": ["A", "B", "D"]},
+            {"a": [1, 5], "b": ["A", "C", "D"]},
+            {"a": [2, 4], "b": ["A", "B", "D"]},
+            {"a": [2, 4], "b": ["A", "C", "D"]},
+            {"a": [2, 5], "b": ["A", "B", "D"]},
+            {"a": [2, 5], "b": ["A", "C", "D"]},
+            {"a": [3, 4], "b": ["A", "B", "D"]},
+            {"a": [3, 4], "b": ["A", "C", "D"]},
+            {"a": [3, 5], "b": ["A", "B", "D"]},
+            {"a": [3, 5], "b": ["A", "C", "D"]},
+        ),
+    )
+    assert match_success(
+        Dict({"a": List(Int()), "b": List(Str())}),
+        ({"a": [1, 2], "b": ["A", "B"]}, {"a": [3, 4], "b": ["C", "D"]}),
+    )
+    assert match_success(
+        Dict({"a": List(Int()), "b": List(Str())}),
+        [
+            {"a": [[1, 2], [3, 4]], "b": ["A", ["B", "C"]], "c": [True, False]},
+            {"a": [1, [2, 3, 4]], "b": [["A", "B"], "C"]},
+        ],
+        (
+            {"a": [1, 3], "b": ["A", "B"]},
+            {"a": [1, 3], "b": ["A", "C"]},
+            {"a": [1, 4], "b": ["A", "B"]},
+            {"a": [1, 4], "b": ["A", "C"]},
+            {"a": [2, 3], "b": ["A", "B"]},
+            {"a": [2, 3], "b": ["A", "C"]},
+            {"a": [2, 4], "b": ["A", "B"]},
+            {"a": [2, 4], "b": ["A", "C"]},
+            {"a": [1, 2], "b": ["A", "C"]},
+            {"a": [1, 2], "b": ["B", "C"]},
+            {"a": [1, 3], "b": ["A", "C"]},
+            {"a": [1, 3], "b": ["B", "C"]},
+            {"a": [1, 4], "b": ["A", "C"]},
+            {"a": [1, 4], "b": ["B", "C"]},
         ),
     )
