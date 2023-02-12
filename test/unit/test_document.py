@@ -27,7 +27,7 @@ def test_fold_map_increment() -> None:
     def increment(x: int) -> int:
         return x + 1
 
-    fold_map = FoldMap[Document](on_integer=increment)
+    fold_map = FoldMap[Document](on_int=increment)
 
     document: Document = [1, 2, 3]
     assert fold_map(document) == [2, 3, 4]
@@ -43,15 +43,15 @@ def test_fold_map_increment() -> None:
 
 
 def test_fold_map_skip_null() -> None:
-    def skip_null_array(xs: list[Document]) -> list[Document]:
+    def skip_null_list(xs: list[Document]) -> list[Document]:
         return [x for x in xs if x is not None]
 
-    def skip_null_object(xs: dict[str, Document]) -> dict[str, Document]:
+    def skip_null_dict(xs: dict[str, Document]) -> dict[str, Document]:
         return {k: v for k, v in xs.items() if v is not None}
 
     fold_map = FoldMap[Document](
-        on_array=skip_null_array,
-        on_object=skip_null_object,
+        on_list=skip_null_list,
+        on_dict=skip_null_dict,
     )
 
     document: Document = None

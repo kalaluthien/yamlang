@@ -1,3 +1,10 @@
 from yamlang.yamltools.document.combinator import FoldMap  # noqa: F401
 from yamlang.yamltools.document.document import Document  # noqa: F401
 from yamlang.yamltools.document.document import load  # noqa: F401
+from yamlang.yamltools.pattern.pattern import Pattern  # noqa: F401
+from yamlang.yamltools.pattern.scalar import BoolPattern  # noqa: F401
+from yamlang.yamltools.pattern.scalar import IntPattern  # noqa: F401
+from yamlang.yamltools.pattern.scalar import FloatPattern  # noqa: F401
+from yamlang.yamltools.pattern.scalar import StrPattern  # noqa: F401
+from yamlang.yamltools.pattern.sequence import ListPattern  # noqa: F401
+from yamlang.yamltools.pattern.mapping import DictPattern  # noqa: F401
