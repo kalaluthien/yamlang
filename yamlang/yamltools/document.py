@@ -23,21 +23,32 @@ _T2 = TypeVar("_T2", bound=Document)
 
 
 def load(source: str | Path) -> Document:
-    # Add custom constructors for YamLang.
+    # Fix default constructors for null.
+    def constructor_null(loader: yaml.Loader, node: yaml.Node) -> Document:
+        # Interpret null as a string "null".
+        return loader.construct_scalar(node)
+
+    yaml.add_constructor("tag:yaml.org,2002:null", constructor_null)
+    yaml.add_constructor("tag:yaml.org,2002:python/none", constructor_null)
+
+    # Fix default constructors for boolean.
     def constructor_bool(loader: yaml.Loader, node: yaml.Node) -> Document:
-        if (value := str(node.value).lower()) == "true":
+        # Reject boolean values that are not "true" or "false".
+        if (value := str(node.value)) == "true":
             return True
         elif value == "false":
             return False
-        else:
-            return loader.construct_scalar(node)
 
-    # Fix default constructors for boolean.
+        return loader.construct_scalar(node)
+
     yaml.add_constructor("tag:yaml.org,2002:bool", constructor_bool)
     yaml.add_constructor("tag:yaml.org,2002:python/bool", constructor_bool)
 
-    # Load the text from the source.
+    # Load the text from the source if it is a Path.
     if isinstance(source, Path):
+        if not source.is_file():
+            raise FileNotFoundError(f"File not found: {source}")
+
         with source.open() as file:
             text = file.read()
     else:
@@ -66,7 +77,7 @@ class Combinator(ABC, Generic[_T1, _T2]):
 
 
 @dataclass
-class Map(Combinator[Document, _T1]):
+class Apply(Combinator[Document, _T1]):
     if TYPE_CHECKING:
         on_null: Callable[[None], _T1]
         on_boolean: Callable[[bool], _T1]
