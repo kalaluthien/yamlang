@@ -14,11 +14,6 @@ class BoolPattern(Pattern):
                 yield from self.apply(item)
             return
 
-        if isinstance(document, dict):
-            for value in document.values():
-                yield from self.apply(value)
-            return
-
         if not isinstance(document, bool):
             return
 
@@ -34,11 +29,6 @@ class IntPattern(Pattern):
         if isinstance(document, list):
             for item in document:
                 yield from self.apply(item)
-            return
-
-        if isinstance(document, dict):
-            for value in document.values():
-                yield from self.apply(value)
             return
 
         if not isinstance(document, int):
@@ -61,11 +51,6 @@ class FloatPattern(Pattern):
                 yield from self.apply(item)
             return
 
-        if isinstance(document, dict):
-            for value in document.values():
-                yield from self.apply(value)
-            return
-
         if not isinstance(document, float):
             return
 
@@ -81,11 +66,6 @@ class StrPattern(Pattern):
         if isinstance(document, list):
             for item in document:
                 yield from self.apply(item)
-            return
-
-        if isinstance(document, dict):
-            for value in document.values():
-                yield from self.apply(value)
             return
 
         if not isinstance(document, str):
