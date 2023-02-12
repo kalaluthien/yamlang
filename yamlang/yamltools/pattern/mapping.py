@@ -1,12 +1,9 @@
-from __future__ import annotations
-
 from abc import abstractmethod
 from collections.abc import Iterable
 from collections.abc import Mapping
 from itertools import product
 from typing import Generic
 from typing import TypeVar
-from typing import final
 
 from yamlang.yamltools import Document
 from yamlang.yamltools.pattern.pattern import Pattern
@@ -16,10 +13,6 @@ _T = TypeVar("_T", bound=Pattern)
 
 class MappingPattern(Pattern, Generic[_T]):
     @abstractmethod
-    def apply(self, document: Document) -> Iterable[dict[str, Document]]:
-        raise NotImplementedError
-
-    @abstractmethod
     def __getitem__(self, key: str) -> _T:
         raise NotImplementedError
 
@@ -28,7 +21,7 @@ class DictPattern(MappingPattern[_T]):
     def __init__(self, patterns: Mapping[str, _T]) -> None:
         self.patterns = dict(patterns)
 
-    def apply(self, document: Document) -> Iterable[dict[str, Document]]:
+    def apply(self, document: Document) -> Iterable[Document]:
         if isinstance(document, list):
             for item in document:
                 yield from self.apply(item)
@@ -59,5 +52,5 @@ class DictPattern(MappingPattern[_T]):
 
         def apply(self, document: Document) -> Iterable[Document]:
             for result in self.pattern.apply(document):
-                if self.key in result:
+                if isinstance(result, dict) and self.key in result:
                     yield result[self.key]

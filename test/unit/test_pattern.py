@@ -854,3 +854,36 @@ def test_mapping_or_pattern() -> None:
             {"b": ["A", "B", "C"]},
         ),
     )
+
+
+def test_list_item_pattern() -> None:
+    assert match_success(List(Int())[0], [1, 2, 3, 4], 1)
+    assert match_success(List(Int())[2], [1, 2, 3, 4], 3)
+    assert match_success(List(Int())[-1], [1, 2, 3, 4], 4)
+    assert match_success(List(Int())[-4], [1, 2, 3, 4], 1)
+    assert match_failure(List(Int())[0], [])
+    assert match_failure(List(Int())[-1], [])
+    assert match_failure(List(Int())[4], [1, 2, 3, 4])
+    assert match_failure(List(Int())[-5], [1, 2, 3, 4])
+
+    assert match_success(List(Int() | Str())[0], [1, "A"], 1)
+    assert match_success(List(Int() | Str())[1], [1, "A"], "A")
+    assert match_failure(List(Int() | Str())[0], [])
+    assert match_failure(List(Int() | Str())[-1], [])
+
+    assert match_success((List(Int()) | List(Str()))[0], [1, 2, 3, 4], 1)
+    assert match_success((List(Int()) | List(Str()))[3], [1, 2, 3, 4], 4)
+    assert match_success((List(Int()) | List(Str()))[-1], [1, 2, 3, 4], 4)
+    assert match_success((List(Int()) | List(Str()))[0], ["A", "B"], "A")
+    assert match_success((List(Int()) | List(Str()))[1], ["A", "B"], "B")
+    assert match_success((List(Int()) | List(Str()))[-2], ["A", "B"], "A")
+    assert match_failure((List(Int()) | List(Str()))[4], [1, 2, 3, 4])
+    assert match_failure((List(Int()) | List(Str()))[5], [1, 2, 3, 4])
+    assert match_failure((List(Int()) | List(Str()))[-5], [1, 2, 3, 4])
+    assert match_failure((List(Int()) | List(Str()))[3], ["A", "B"])
+    assert match_failure((List(Int()) | List(Str()))[-3], ["A", "B"])
+    assert match_failure((List(Int()) | List(Str()))[-4], ["A", "B"])
+    assert match_failure((List(Int()) | List(Str()))[0], [1, "A", "B"])
+    assert match_failure((List(Int()) | List(Str()))[1], [1, "A", "B"])
+    assert match_failure((List(Int()) | List(Str()))[2], [1, "A", "B"])
+    assert match_failure((List(Int()) | List(Str()))[-1], [1, "A", "B"])

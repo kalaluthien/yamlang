@@ -53,10 +53,6 @@ class Pattern(ABC):
         return OrPattern(patterns)
 
     @final
-    def __ror__(self, __pattern: None) -> Self:
-        return NullPattern(self.pattern if isinstance(self, NullPattern) else self)
-
-    @final
     def __rrshift__(self, __pattern: Pattern) -> Self:
         return ThenPattern(__pattern, self)
 
@@ -88,10 +84,50 @@ class OrPattern(Pattern):
             yield from pattern.apply(document)
 
     def __getattr__(self, name: str) -> Any:
-        for pattern in self.patterns:
-            if (attr := getattr(pattern, name, None)) is not None:
-                return attr
-        raise AttributeError(*self.patterns, name=name)
+        candidates = [
+            getattr(pattern, name)
+            for pattern in self.patterns
+            if hasattr(pattern, name)
+        ]
+
+        if not candidates:
+            raise AttributeError(*self.patterns, name=name)
+
+        if all(isinstance(c, Iterable) for c in candidates):
+            return (value for candidate in candidates for value in candidate)
+
+        if all(isinstance(c, Pattern) for c in candidates):
+            pattern = OrPattern(
+                c.pattern if isinstance(c, NullPattern) else c for c in candidates
+            )
+            if any(isinstance(c, NullPattern) for c in candidates):
+                pattern = NullPattern(pattern)
+            return pattern
+
+        return next(iter(candidates))
+
+    def __getitem__(self, index_or_key: int | str) -> Any:
+        candidates = [
+            getattr(pattern, "__getitem__")(index_or_key)
+            for pattern in self.patterns
+            if hasattr(pattern, "__getitem__")
+        ]
+
+        if not candidates:
+            raise TypeError(*self.patterns)
+
+        if all(isinstance(c, Iterable) for c in candidates):
+            return (value for candidate in candidates for value in candidate)
+
+        if all(isinstance(c, Pattern) for c in candidates):
+            pattern = OrPattern(
+                c.pattern if isinstance(c, NullPattern) else c for c in candidates
+            )
+            if any(isinstance(c, NullPattern) for c in candidates):
+                pattern = NullPattern(pattern)
+            return pattern
+
+        return next(iter(candidates))
 
 
 class ThenPattern(Pattern):

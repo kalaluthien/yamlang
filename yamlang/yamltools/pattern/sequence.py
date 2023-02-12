@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from abc import abstractmethod
 from collections.abc import Iterable
 from itertools import product
@@ -15,10 +13,6 @@ _T = TypeVar("_T", bound=Pattern)
 
 
 class SequencePattern(Pattern, Generic[_T]):
-    @abstractmethod
-    def apply(self, document: Document) -> Iterable[list[Document]]:
-        raise NotImplementedError
-
     @abstractmethod
     def __getitem__(self, index: int) -> _T:
         raise NotImplementedError
@@ -36,12 +30,10 @@ class ListPattern(SequencePattern[_T]):
     def __init__(self, pattern: _T) -> None:
         self.pattern = pattern
 
-    def apply(self, document: Document) -> Iterable[list[Document]]:
-        if not isinstance(document, list):
-            return
-
-        for items in product(*(self.pattern.apply(item) for item in document)):
-            yield list(items)
+    def apply(self, document: Document) -> Iterable[Document]:
+        if isinstance(document, list):
+            for items in product(*(self.pattern.apply(item) for item in document)):
+                yield list(items)
 
     def __getitem__(self, index: int) -> _T:
         return ListPattern.GetItemPattern(self, index) >> self.pattern
@@ -53,7 +45,10 @@ class ListPattern(SequencePattern[_T]):
 
         def apply(self, document: Document) -> Iterable[Document]:
             for result in self.pattern.apply(document):
-                yield result[self.index]
+                if isinstance(result, list) and -len(result) <= self.index < len(
+                    result
+                ):
+                    yield result[self.index]
 
 
 class TakeSequencePattern(SequencePattern[_T]):
@@ -61,9 +56,10 @@ class TakeSequencePattern(SequencePattern[_T]):
         self.pattern = pattern
         self.count = count
 
-    def apply(self, document: Document) -> Iterable[list[Document]]:
+    def apply(self, document: Document) -> Iterable[Document]:
         for result in self.pattern.apply(document):
-            yield result[: self.count]
+            if isinstance(result, list):
+                yield result[: self.count]
 
     def __getitem__(self, index: int) -> _T:
         return self.pattern[index]
@@ -74,9 +70,10 @@ class DropSequencePattern(SequencePattern[_T]):
         self.pattern = pattern
         self.count = count
 
-    def apply(self, document: Document) -> Iterable[list[Document]]:
+    def apply(self, document: Document) -> Iterable[Document]:
         for result in self.pattern.apply(document):
-            yield result[self.count :]
+            if isinstance(result, list):
+                yield result[self.count :]
 
     def __getitem__(self, index: int) -> _T:
         return self.pattern[index]

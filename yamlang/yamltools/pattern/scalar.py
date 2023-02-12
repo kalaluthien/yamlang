@@ -1,21 +1,14 @@
-from abc import abstractmethod
 from collections.abc import Iterable
-from typing import Generic
-from typing import TypeGuard
-from typing import TypeVar
 
 from yamlang.yamltools import Document
 from yamlang.yamltools.pattern.pattern import Pattern
 
 
-_T = TypeVar("_T", bool, int, float, str)
+class BoolPattern(Pattern):
+    def __init__(self, value: bool | None = None) -> None:
+        self.value = value
 
-
-class ScalarPattern(Pattern, Generic[_T]):
-    def __init__(self, scalar: _T | None = None) -> None:
-        self.scalar = scalar
-
-    def apply(self, document: Document) -> Iterable[_T]:
+    def apply(self, document: Document) -> Iterable[Document]:
         if isinstance(document, list):
             for item in document:
                 yield from self.apply(item)
@@ -26,56 +19,77 @@ class ScalarPattern(Pattern, Generic[_T]):
                 yield from self.apply(value)
             return
 
-        if self.match(document):
+        if not isinstance(document, bool):
+            return
+
+        if self.value is None or document == self.value:
             yield document
 
-    @abstractmethod
-    def match(self, document: Document) -> TypeGuard[_T]:
-        raise NotImplementedError
 
+class IntPattern(Pattern):
+    def __init__(self, value: int | None = None) -> None:
+        self.value = value
 
-class BoolPattern(ScalarPattern[bool]):
-    def match(self, document: Document) -> TypeGuard[bool]:
-        if not isinstance(document, bool):
-            return False
+    def apply(self, document: Document) -> Iterable[Document]:
+        if isinstance(document, list):
+            for item in document:
+                yield from self.apply(item)
+            return
 
-        if self.scalar is None:
-            return True
+        if isinstance(document, dict):
+            for value in document.values():
+                yield from self.apply(value)
+            return
 
-        return document == self.scalar
-
-
-class IntPattern(ScalarPattern[int]):
-    def match(self, document: Document) -> TypeGuard[int]:
         if not isinstance(document, int):
-            return False
+            return
 
         if isinstance(document, bool):
-            return False
+            return
 
-        if self.scalar is None:
-            return True
-
-        return document == self.scalar
+        if self.value is None or document == self.value:
+            yield document
 
 
-class FloatPattern(ScalarPattern[float]):
-    def match(self, document: Document) -> TypeGuard[float]:
+class FloatPattern(Pattern):
+    def __init__(self, value: float | None = None) -> None:
+        self.value = value
+
+    def apply(self, document: Document) -> Iterable[Document]:
+        if isinstance(document, list):
+            for item in document:
+                yield from self.apply(item)
+            return
+
+        if isinstance(document, dict):
+            for value in document.values():
+                yield from self.apply(value)
+            return
+
         if not isinstance(document, float):
-            return False
+            return
 
-        if self.scalar is None:
-            return True
-
-        return document == self.scalar
+        if self.value is None or document == self.value:
+            yield document
 
 
-class StrPattern(ScalarPattern[str]):
-    def match(self, document: Document) -> TypeGuard[str]:
+class StrPattern(Pattern):
+    def __init__(self, value: str | None = None) -> None:
+        self.value = value
+
+    def apply(self, document: Document) -> Iterable[Document]:
+        if isinstance(document, list):
+            for item in document:
+                yield from self.apply(item)
+            return
+
+        if isinstance(document, dict):
+            for value in document.values():
+                yield from self.apply(value)
+            return
+
         if not isinstance(document, str):
-            return False
+            return
 
-        if self.scalar is None:
-            return True
-
-        return document == self.scalar
+        if self.value is None or document == self.value:
+            yield document
