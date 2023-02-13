@@ -940,6 +940,27 @@ def test_nested_list_access_pattern() -> None:
     )
     assert match_success(
         List(List(Int()) | List(Str()))[1][1],
+        [[1, 2, 3], [["A", "B", "C"], ["D", "E"]]],
+        ("D", "E", "D", "E", "D", "E"),
+    )
+    assert match_success(
+        List(List(Int()) | List(Str()))[1][1],
         [[], [["A", "B", "C"], ["D", "E"]]],
         ("D", "E", "D", "E", "D", "E", "D", "E", "D", "E", "D", "E"),
+    )
+    assert match_failure(
+        List(List(Int()) | List(Str()))[1][2],
+        [[1, 2, 3], [["A", "B", "C"], ["D", "E"]]],
+    )
+    assert match_failure(
+        List(List(Int()) | List(Str()))[1][0],
+        [[1, "A"], [2, 3, 4], ["B", "C"]],
+    )
+    assert match_failure(
+        List(List(Int()) | List(Str()))[1][0],
+        [[1, 2, 3], ["A", "B", "C"], 4, 5, 6],
+    )
+    assert match_failure(
+        List(List(Int()) | List(Str()))[1][0],
+        [[1, 2, 3], ["A", "B", "C"], "D", "E", "F"],
     )
