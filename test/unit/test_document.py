@@ -1,6 +1,6 @@
-from yamlang.yamltools import Document
-from yamlang.yamltools import FoldMap
-from yamlang.yamltools import load
+import datetime
+
+from yamlang.yamltools import Document, FoldMap, load
 
 
 def test_load_yaml() -> None:
@@ -20,6 +20,12 @@ def test_load_yaml() -> None:
     assert document == {
         "foo": {"bar": 2.0, "baz": 3.0},
         "qux": {"bar": 2.0, "baz": 3.0},
+    }
+
+    document = load(r"{foo: [2023-01-01], bar: [2023-01-01 12:34:56]}")
+    assert document == {
+        "foo": [datetime.date(2023, 1, 1)],
+        "bar": [datetime.datetime(2023, 1, 1, 12, 34, 56)],
     }
 
 

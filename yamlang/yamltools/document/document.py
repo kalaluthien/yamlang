@@ -1,11 +1,21 @@
 from __future__ import annotations
 
+import datetime
 from pathlib import Path
 
 import yaml
 
-
-Document = None | bool | int | float | str | list["Document"] | dict[str, "Document"]
+Document = (
+    None
+    | bool
+    | int
+    | float
+    | str
+    | datetime.date
+    | datetime.datetime
+    | list["Document"]
+    | dict[str, "Document"]
+)
 
 
 def load(source: str | Path) -> Document:

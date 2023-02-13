@@ -1,10 +1,11 @@
+import datetime
 from collections.abc import Iterable
 from typing import Generic, Self, TypeVar, final
 
 from yamlang.yamltools import Document
 from yamlang.yamltools.pattern.pattern import NeverPattern, Pattern
 
-_T = TypeVar("_T", bool, int, float, str)
+_T = TypeVar("_T", bool, int, float, str, datetime.date, datetime.datetime)
 
 
 class ScalarPattern(Pattern, Generic[_T]):
@@ -75,6 +76,34 @@ class StrPattern(ScalarPattern[str]):
             return
 
         if not isinstance(document, str):
+            return
+
+        if self._value is None or document == self._value:
+            yield document
+
+
+class DatePattern(ScalarPattern[datetime.date]):
+    def apply(self, document: Document) -> Iterable[Document]:
+        if isinstance(document, list):
+            for item in document:
+                yield from self.apply(item)
+            return
+
+        if not isinstance(document, datetime.date):
+            return
+
+        if self._value is None or document == self._value:
+            yield document
+
+
+class DateTimePattern(ScalarPattern[datetime.datetime]):
+    def apply(self, document: Document) -> Iterable[Document]:
+        if isinstance(document, list):
+            for item in document:
+                yield from self.apply(item)
+            return
+
+        if not isinstance(document, datetime.datetime):
             return
 
         if self._value is None or document == self._value:

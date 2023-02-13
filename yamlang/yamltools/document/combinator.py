@@ -1,8 +1,7 @@
+import datetime
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Generic
-from typing import TypeVar
-from typing import cast
+from typing import Generic, TypeVar, cast
 
 from yamlang.yamltools.document.document import Document
 
@@ -16,6 +15,8 @@ class FoldMap(Generic[_T]):
     on_int: Callable[[int], _T] | None = None
     on_float: Callable[[float], _T] | None = None
     on_str: Callable[[str], _T] | None = None
+    on_date: Callable[[datetime.date], _T] | None = None
+    on_datetime: Callable[[datetime.datetime], _T] | None = None
     on_list: Callable[[list[_T]], _T] | None = None
     on_dict: Callable[[dict[str, _T]], _T] | None = None
     default: Callable[[Document], _T] = lambda document: cast(_T, document)
@@ -35,6 +36,12 @@ class FoldMap(Generic[_T]):
 
         if isinstance(document, str) and self.on_str:
             return self.on_str(document)
+
+        if isinstance(document, datetime.date) and self.on_date:
+            return self.on_date(document)
+
+        if isinstance(document, datetime.datetime) and self.on_datetime:
+            return self.on_datetime(document)
 
         if isinstance(document, list):
             if self.on_list:

@@ -21,8 +21,8 @@ class SequencePattern(Pattern, Generic[_T1]):
         return DropSequencePattern(self, count)
 
     @final
-    def __getitem__(self, __key: int) -> AtPattern[_T1]:
-        return AtPattern[_T1](self, __key)
+    def __getitem__(self, __key: int) -> GetPattern[_T1]:
+        return GetPattern[_T1](self, __key)
 
 
 class MappingPattern(Pattern, Generic[_T1]):
@@ -45,46 +45,6 @@ class ListPattern(SequencePattern[_T1]):
         if pattern_string.startswith("(") and pattern_string.endswith(")"):
             pattern_string = pattern_string[1:-1]
         return f"{self.__class__.__name__}({pattern_string})"
-
-
-class AtPattern(Pattern, Generic[_T1]):
-    def __init__(self, pattern: Pattern, *index: int) -> None:
-        self.__pattern = pattern
-        self.__indexes = index
-
-    def apply(self, document: Document) -> Iterable[Document]:
-        for result in self.__pattern.apply(document):
-            for index in self.__indexes:
-                if not isinstance(result, list):
-                    return
-                if index >= len(result) or index < -len(result):
-                    return
-                result = result[index]
-            yield result
-
-    @overload
-    def __getitem__(self: AtPattern[ListPattern[_T2]], __key: int) -> AtPattern[_T2]:
-        ...
-
-    @overload
-    def __getitem__(self: AtPattern[DictPattern[_T2]], __key: str) -> GetPattern[_T2]:
-        ...
-
-    @overload
-    def __getitem__(self, __key: int) -> AtPattern[_T1]:
-        ...
-
-    @overload
-    def __getitem__(self, __key: str) -> GetPattern[_T1]:
-        ...
-
-    def __getitem__(self, __key: int | str) -> Pattern:
-        if isinstance(__key, str):
-            return GetPattern(self, __key)
-        return AtPattern(self.__pattern, *self.__indexes, __key)
-
-    def __repr__(self) -> str:
-        return f"{self.__pattern}[{']['.join(map(str, self.__indexes))}]"
 
 
 class DictPattern(MappingPattern[_T1]):
@@ -124,43 +84,43 @@ class DictPattern(MappingPattern[_T1]):
 
 
 class GetPattern(Pattern, Generic[_T1]):
-    def __init__(self, pattern: Pattern, *key: str) -> None:
+    def __init__(self, pattern: Pattern, *key: int | str) -> None:
         self.__pattern = pattern
         self.__keys = key
 
     def apply(self, document: Document) -> Iterable[Document]:
         for result in self.__pattern.apply(document):
             for key in self.__keys:
-                if not isinstance(result, dict):
-                    return
-                if key not in result:
-                    return
-                result = result[key]
-            yield result
+                if isinstance(key, int):
+                    if isinstance(result, list) and (-len(result) <= key < len(result)):
+                        result = result[key]
+                    else:
+                        break
+                else:
+                    if isinstance(result, dict) and key in result:
+                        result = result[key]
+                    else:
+                        break
+            else:
+                yield result
+
+    @overload
+    def __getitem__(self: GetPattern[ListPattern[_T2]], __key: int) -> GetPattern[_T2]:
+        ...
 
     @overload
     def __getitem__(self: GetPattern[DictPattern[_T2]], __key: str) -> GetPattern[_T2]:
         ...
 
     @overload
-    def __getitem__(self: GetPattern[ListPattern[_T2]], __key: int) -> AtPattern[_T2]:
+    def __getitem__(self, __key: int | str) -> GetPattern[_T1]:
         ...
 
-    @overload
-    def __getitem__(self, __key: str) -> GetPattern[_T1]:
-        ...
-
-    @overload
-    def __getitem__(self, __key: int) -> AtPattern[_T1]:
-        ...
-
-    def __getitem__(self, __key: str | int) -> Pattern:
-        if isinstance(__key, int):
-            return AtPattern(self, __key)
+    def __getitem__(self, __key: int | str) -> Pattern:
         return GetPattern(self.__pattern, *self.__keys, __key)
 
     def __repr__(self) -> str:
-        return f"{self.__pattern}[{']['.join(self.__keys)}]"
+        return f"{self.__pattern}[{']['.join(map(str, self.__keys))}]"
 
 
 class TakeSequencePattern(SequencePattern[_T1]):

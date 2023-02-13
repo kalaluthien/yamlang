@@ -57,14 +57,14 @@ class NullPattern(Pattern):
         self.__pattern = pattern
 
     def apply(self, document: Document) -> Iterable[Document]:
-        result = iter(self.__pattern.apply(document))
+        results = iter(self.__pattern.apply(document))
 
         try:
-            yield next(result)
+            yield next(results)
         except StopIteration:
             yield None
 
-        yield from result
+        yield from results
 
     def __getitem__(self, __key: int | str | slice) -> Self:
         return NullPattern(self.__pattern[__key])

@@ -1,4 +1,8 @@
+import datetime
+
 from yamlang.yamltools import BoolPattern as Bool
+from yamlang.yamltools import DatePattern as Date
+from yamlang.yamltools import DateTimePattern as DateTime
 from yamlang.yamltools import DictPattern as Dict
 from yamlang.yamltools import Document
 from yamlang.yamltools import FloatPattern as Float
@@ -144,6 +148,10 @@ def test_str_pattern() -> None:
     assert match_success(Str("a"), ("a", "a", "a"))
     assert match_success(Str("a"), ("", "a", "b", "a", ""), ("a", "a"))
     assert match_failure(Str("a"), ("", "b", "b"))
+
+
+def test_date_pattern() -> None:
+    assert match_success(Date(), datetime.date(2019, 1, 1))
 
 
 def test_list_pattern() -> None:
