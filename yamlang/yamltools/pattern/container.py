@@ -13,16 +13,16 @@ _T2 = TypeVar("_T2", bound=Pattern)
 
 class SequencePattern(Pattern, Generic[_T1]):
     @final
+    def __getitem__(self, __key: int) -> GetPattern[_T1]:
+        return GetPattern[_T1](self, __key)
+
+    @final
     def take(self, count: int) -> Self:
-        return TakeSequencePattern(self, count)
+        return TakePattern(self, count)
 
     @final
     def drop(self, count: int) -> Self:
-        return DropSequencePattern(self, count)
-
-    @final
-    def __getitem__(self, __key: int) -> GetPattern[_T1]:
-        return GetPattern[_T1](self, __key)
+        return DropPattern(self, count)
 
 
 class MappingPattern(Pattern, Generic[_T1]):
@@ -123,7 +123,7 @@ class GetPattern(Pattern, Generic[_T1]):
         return f"{self.__pattern}[{']['.join(map(str, self.__keys))}]"
 
 
-class TakeSequencePattern(SequencePattern[_T1]):
+class TakePattern(SequencePattern[_T1]):
     def __init__(self, pattern: SequencePattern[_T1], count: int) -> None:
         self.__pattern = pattern
         self.__count = count
@@ -137,7 +137,7 @@ class TakeSequencePattern(SequencePattern[_T1]):
         return f"{self.__pattern}[:{self.__count}]"
 
 
-class DropSequencePattern(SequencePattern[_T1]):
+class DropPattern(SequencePattern[_T1]):
     def __init__(self, pattern: SequencePattern[_T1], count: int) -> None:
         self.__pattern = pattern
         self.__count = count
