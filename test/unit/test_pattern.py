@@ -152,7 +152,7 @@ def test_str_pattern() -> None:
 
 def test_date_pattern() -> None:
     assert match_success(Date(), datetime.date(2019, 1, 1))
-    assert match_success(Date(), datetime.datetime(2019, 1, 1))
+    assert match_failure(Date(), datetime.datetime(2019, 1, 1))
     assert match_failure(Date(), None)
     assert match_failure(Date(), 0)
     assert match_failure(Date(), "2019-01-01")
@@ -161,11 +161,16 @@ def test_date_pattern() -> None:
     assert match_success(
         Date(),
         (datetime.date(2019, 1, 1), datetime.datetime(2019, 1, 2)),
+        (datetime.date(2019, 1, 1),),
     )
     assert match_success(
         Date(),
         (datetime.date(2019, 1, 1), datetime.date(2019, 1, 2), "2019-01-03"),
         (datetime.date(2019, 1, 1), datetime.date(2019, 1, 2)),
+    )
+    assert match_failure(
+        Date(),
+        (datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)),
     )
     assert match_failure(
         Date(),

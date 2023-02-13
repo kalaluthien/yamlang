@@ -92,6 +92,9 @@ class DatePattern(ScalarPattern[datetime.date]):
         if not isinstance(document, datetime.date):
             return
 
+        if isinstance(document, datetime.datetime):
+            return
+
         if self._value is None or document == self._value:
             yield document
 
