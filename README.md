@@ -9,3 +9,30 @@ Inspired by:
 - [StrictYAML](https://github.com/crdoconnor/strictyaml)
 - [The Racket Programming Language](https://github.com/racket/racket)
 - [The Roc Programming Language](https://github.com/roc-lang/roc)
+
+## Settings
+```bash
+git clone https://github.com/kalaluthien/yamlang.git
+cd yamlang
+
+conda create -n <environment-name> python=3.11
+conda activate <environment-name>
+
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+## Test
+```bash
+pip install pytest
+
+pytest test/unit
+```
+
+## Development
+```bash
+pip install jupyter
+pip install black
+pip install isort
+pip install pre-commit
+```
