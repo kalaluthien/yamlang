@@ -964,3 +964,96 @@ def test_nested_list_access_pattern() -> None:
         List(List(Int()) | List(Str()))[1][0],
         [[1, 2, 3], ["A", "B", "C"], "D", "E", "F"],
     )
+
+
+def test_nested_dict_access_pattern() -> None:
+    assert match_success(
+        Dict({"a": Dict({"b": Int()})})["a"]["b"],
+        {"a": {"b": 1}},
+        1,
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int()})})["a"]["b"],
+        {"a": {"b": 1, "c": 2}, "d": 3},
+        1,
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int()})})["a"]["b"],
+        {"a": {"b": [1, 2]}},
+        (1, 2),
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int()})})["a"]["b"],
+        {"a": {"b": [1, 2], "c": [3, 4]}, "d": [5, 6]},
+        (1, 2),
+    )
+    assert match_failure(Dict({"a": Dict({"b": Int()})})["a"]["b"], {"a": {"b": None}})
+    assert match_failure(Dict({"a": Dict({"b": Int()})})["a"]["b"], {"a": {"b": False}})
+    assert match_failure(
+        Dict({"a": Dict({"b": Int()})})["a"]["b"],
+        {"a": {"c": 1}, "b": 2},
+    )
+    assert match_failure(Dict({"a": Dict({"b": Int()})})["a"]["b"], {"a": {}})
+
+    assert match_success(
+        Dict({"a": Dict({"b": Int() | Str()})})["a"]["b"],
+        {"a": {"b": 1}},
+        1,
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int() | Str()})})["a"]["b"],
+        {"a": {"b": "A"}},
+        "A",
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int() | Str()})})["a"]["b"],
+        {"a": {"b": [1, 2]}},
+        (1, 2),
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int() | Str()})})["a"]["b"],
+        {"a": {"b": [1, "A"]}},
+        (1, "A"),
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int() | Str()})})["a"]["b"],
+        {"a": {"b": ["A", 2, "B"]}},
+        (2, "A", "B"),
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int() | Str()}), "c": Bool()})["a"]["b"],
+        {"a": {"b": ["A", 2, "B"]}, "c": True},
+        (2, "A", "B"),
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int() | Str()}), "c": Bool()})["a"]["b"],
+        {"a": {"b": ["A", 2, "B"]}, "c": [True, False]},
+        (2, 2, "A", "A", "B", "B"),
+    )
+    assert match_failure(
+        Dict({"a": Dict({"b": Int() | Str()}), "c": Bool()})["a"]["b"],
+        {"a": {"b": 1}, "c": []},
+    )
+    assert match_failure(
+        Dict({"a": Dict({"b": Int() | Str()}), "c": Bool()})["a"]["b"],
+        {"a": {"b": []}, "c": True},
+    )
+
+    assert match_success(
+        Dict({"a": Dict({"b": Int()}), "c": Dict({"d": Str()})})["a"]["b"],
+        {"a": {"b": 1}, "c": {"d": "A"}},
+        1,
+    )
+    assert match_success(
+        Dict({"a": Dict({"b": Int()}), "c": Dict({"d": Str()})})["c"]["d"],
+        {"a": {"b": 1}, "c": {"d": "A"}},
+        "A",
+    )
+    assert match_failure(
+        Dict({"a": Dict({"b": Int()}), "c": Dict({"d": Str()})})["a"]["d"],
+        {"a": {"b": 1}, "c": {"d": "A"}},
+    )
+    assert match_failure(
+        Dict({"a": Dict({"b": Int()}), "c": Dict({"d": Str()})})["c"]["b"],
+        {"a": {"b": 1}, "c": {"d": "A"}},
+    )
