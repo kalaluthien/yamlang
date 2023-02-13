@@ -1,13 +1,24 @@
 from collections.abc import Iterable
+from typing import Generic, TypeVar, final
 
 from yamlang.yamltools import Document
 from yamlang.yamltools.pattern.pattern import Pattern
 
+_T = TypeVar("_T", bool, int, float, str)
 
-class BoolPattern(Pattern):
-    def __init__(self, value: bool | None = None) -> None:
-        self.value = value
 
+class ScalarPattern(Pattern, Generic[_T]):
+    def __init__(self, value: _T | None = None) -> None:
+        self._value = value
+
+    @final
+    def __repr__(self) -> str:
+        if self._value is None:
+            return f"{self.__class__.__name__}(*)"
+        return f"{self.__class__.__name__}({self._value})"
+
+
+class BoolPattern(ScalarPattern[bool]):
     def apply(self, document: Document) -> Iterable[Document]:
         if isinstance(document, list):
             for item in document:
@@ -17,17 +28,11 @@ class BoolPattern(Pattern):
         if not isinstance(document, bool):
             return
 
-        if self.value is None or document == self.value:
+        if self._value is None or document == self._value:
             yield document
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.value})"
 
-
-class IntPattern(Pattern):
-    def __init__(self, value: int | None = None) -> None:
-        self.value = value
-
+class IntPattern(ScalarPattern[int]):
     def apply(self, document: Document) -> Iterable[Document]:
         if isinstance(document, list):
             for item in document:
@@ -40,17 +45,11 @@ class IntPattern(Pattern):
         if isinstance(document, bool):
             return
 
-        if self.value is None or document == self.value:
+        if self._value is None or document == self._value:
             yield document
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.value})"
 
-
-class FloatPattern(Pattern):
-    def __init__(self, value: float | None = None) -> None:
-        self.value = value
-
+class FloatPattern(ScalarPattern[float]):
     def apply(self, document: Document) -> Iterable[Document]:
         if isinstance(document, list):
             for item in document:
@@ -60,17 +59,11 @@ class FloatPattern(Pattern):
         if not isinstance(document, float):
             return
 
-        if self.value is None or document == self.value:
+        if self._value is None or document == self._value:
             yield document
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.value})"
 
-
-class StrPattern(Pattern):
-    def __init__(self, value: str | None = None) -> None:
-        self.value = value
-
+class StrPattern(ScalarPattern[str]):
     def apply(self, document: Document) -> Iterable[Document]:
         if isinstance(document, list):
             for item in document:
@@ -80,8 +73,5 @@ class StrPattern(Pattern):
         if not isinstance(document, str):
             return
 
-        if self.value is None or document == self.value:
+        if self._value is None or document == self._value:
             yield document
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.value})"

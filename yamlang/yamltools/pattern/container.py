@@ -41,7 +41,10 @@ class ListPattern(SequencePattern[_T1]):
                 yield list(items)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__pattern})"
+        pattern_string = str(self.__pattern)
+        if pattern_string.startswith("(") and pattern_string.endswith(")"):
+            pattern_string = pattern_string[1:-1]
+        return f"{self.__class__.__name__}({pattern_string})"
 
 
 class AtPattern(Pattern, Generic[_T1]):
@@ -106,10 +109,14 @@ class DictPattern(MappingPattern[_T1]):
             yield dict(zip(self.__patterns.keys(), values))
 
     def __repr__(self) -> str:
-        patterns = ", ".join(
-            f"{key}: {value}" for key, value in self.__patterns.items()
-        )
-        return f"{self.__class__.__name__}({{{patterns}}})"
+        pattern_strings = []
+        for key, pattern in self.__patterns.items():
+            pattern_string = str(pattern)
+            if pattern_string.startswith("(") and pattern_string.endswith(")"):
+                pattern_string = pattern_string[1:-1]
+            pattern_strings.append(f"{key}: {pattern_string}")
+        pattern_string = ", ".join(pattern_strings)
+        return f"{self.__class__.__name__}({{{pattern_string}}})"
 
 
 class GetPattern(Pattern, Generic[_T1]):

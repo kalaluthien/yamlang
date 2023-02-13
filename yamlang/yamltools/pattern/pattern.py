@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Any, Generic, Self, TypeVar, cast, final, overload
+from typing import Generic, Self, TypeVar, cast, final, overload
 
 from yamlang.yamltools import Document
 
@@ -66,7 +66,10 @@ class NullPattern(Pattern):
         return NullPattern(self.__pattern[__key])
 
     def __repr__(self) -> str:
-        return f"({self.__pattern})?"
+        pattern_string = str(self.__pattern)
+        if pattern_string.startswith("(") and pattern_string.endswith(")"):
+            pattern_string = pattern_string[1:-1]
+        return f"({pattern_string})?"
 
 
 class OrPattern(Pattern):
@@ -81,7 +84,13 @@ class OrPattern(Pattern):
         return OrPattern(pattern[__key] for pattern in self.__patterns)
 
     def __repr__(self) -> str:
-        return f"({' | '.join(map(str, self.__patterns))})"
+        pattern_strings = []
+        for pattern in self.__patterns:
+            pattern_string = str(pattern)
+            if pattern_string.startswith("(") and pattern_string.endswith(")"):
+                pattern_string = pattern_string[1:-1]
+            pattern_strings.append(pattern_string)
+        return " | ".join(pattern_strings)
 
 
 class ThenPattern(Pattern):
@@ -97,4 +106,10 @@ class ThenPattern(Pattern):
         return ThenPattern(self.__frontend_pattern, self.__backend_pattern[__key])
 
     def __repr__(self) -> str:
-        return f"({self.__frontend_pattern} -> {self.__backend_pattern})"
+        frontend_string = str(self.__frontend_pattern)
+        if frontend_string.startswith("(") and frontend_string.endswith(")"):
+            frontend_string = frontend_string[1:-1]
+        backend_string = str(self.__backend_pattern)
+        if backend_string.startswith("(") and backend_string.endswith(")"):
+            backend_string = backend_string[1:-1]
+        return f"(({frontend_string}) >> ({backend_string}))"
