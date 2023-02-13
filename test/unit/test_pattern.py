@@ -1057,3 +1057,114 @@ def test_nested_dict_access_pattern() -> None:
         Dict({"a": Dict({"b": Int()}), "c": Dict({"d": Str()})})["c"]["b"],
         {"a": {"b": 1}, "c": {"d": "A"}},
     )
+
+
+def test_nested_dict_and_list_access_pattern() -> None:
+    assert match_success(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][0]["b"],
+        {"a": [{"b": 1}]},
+        1,
+    )
+    assert match_success(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][0]["b"],
+        {"a": [{"b": 1}, {"b": 2}]},
+        1,
+    )
+    assert match_success(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][1]["b"],
+        {"a": [{"b": 1}, {"b": 2}]},
+        2,
+    )
+    assert match_success(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][0]["b"],
+        {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
+        1,
+    )
+    assert match_success(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][1]["b"],
+        {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
+        2,
+    )
+    assert match_success(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][2]["b"],
+        {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
+        3,
+    )
+    assert match_success(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][2]["b"],
+        {"a": [{"b": 1, "c": True}, {"b": 2, "c": False}, {"b": 3, "c": True}]},
+        3,
+    )
+    assert match_failure(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][3]["b"],
+        {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
+    )
+    assert match_failure(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][0]["b"],
+        {"a": [{}, {"b": 2}, {"b": 3}]},
+    )
+    assert match_failure(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][0]["b"],
+        {"a": [{}, {"b": 2}, {"b": 3}]},
+    )
+    assert match_failure(
+        Dict({"a": List(Dict({"b": Int()}))})["b"][0]["b"],
+        {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
+    )
+    assert match_failure(
+        Dict({"a": List(Dict({"b": Int()}))})["a"]["b"],
+        {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
+    )
+    assert match_failure(
+        Dict({"a": List(Dict({"b": Int()}))})["a"]["b"][0],
+        {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
+    )
+    assert match_failure(
+        Dict({"a": List(Dict({"b": Int()}))})["a"][0]["b"][0],
+        {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
+    )
+
+    assert match_success(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[0]["a"][0],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+        1,
+    )
+    assert match_success(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[1]["a"][0],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+        2,
+    )
+    assert match_success(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[0]["b"]["c"],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+        "A",
+    )
+    assert match_success(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[1]["b"]["c"],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+        "B",
+    )
+    assert match_failure(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[0]["a"][1],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+    )
+    assert match_failure(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[0]["b"]["a"],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+    )
+    assert match_failure(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[0]["b"][0],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+    )
+    assert match_failure(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[1]["a"][-2],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+    )
+    assert match_failure(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[1]["b"]["a"],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+    )
+    assert match_failure(
+        List(Dict({"a": List(Int()), "b": Dict({"c": Str()})}))[1]["b"][0],
+        [{"a": [1], "b": {"c": "A"}}, {"a": [2], "b": {"c": "B"}}],
+    )
