@@ -906,3 +906,40 @@ def test_dict_access_pattern() -> None:
     assert match_success(Dict({"a": Int() | Str()})["a"], {"a": ["A", 2]}, (2, "A"))
     assert match_failure(Dict({"a": Int() | Str()})["a"], {"a": False})
     assert match_failure(Dict({"a": Int() | Str()})["b"], {"a": [1, "A"]})
+
+
+def test_nested_list_access_pattern() -> None:
+    assert match_success(List(List(Int()))[0][0], [[1, 2, 3], [4, 5, 6]], 1)
+    assert match_success(List(List(Int()))[1][1], [[1, 2, 3], [4, 5, 6]], 5)
+    assert match_success(List(List(Int()))[-1][-1], [[1, 2, 3], [4, 5, 6]], 6)
+    assert match_failure(List(List(Int()))[2][2], [[1, 2, 3], [4, 5, 6]])
+    assert match_failure(List(List(Int()))[1][3], [[1, 2, 3], [4, 5, 6]])
+    assert match_failure(List(List(Int()))[0][0], [[], [4, 5, 6]])
+    assert match_failure(List(List(Int()))[1][0], [[1, 2, 3], []])
+
+    assert match_success(List(List(Int() | Str()))[0][1], [[1, 2, 3], [4, 5, 6]], 2)
+    assert match_success(List(List(Int() | Str()))[1][0], [["A", 2], ["B", 5]], "B")
+    assert match_success(List(List(Int() | Str()))[1][0], [[], ["B", 5]], "B")
+    assert match_success(
+        List(List(Int() | Str()))[1][0],
+        [[], [["B", "C"], 5]],
+        ("B", "C"),
+    )
+    assert match_failure(List(List(Int() | Str()))[0][0], [["A", 2], [None]])
+    assert match_failure(List(List(Int() | Str()))[0][1], [[[], 2], [1]])
+
+    assert match_success(
+        List(List(Int()) | List(Str()))[1][0],
+        [[1, 2, 3], [4, 5, 6], ["A", "B", "C"]],
+        4,
+    )
+    assert match_success(
+        List(List(Int()) | List(Str()))[0][2],
+        [["A", "B", "C"], [4, 5, 6], [7, 8, 9]],
+        "C",
+    )
+    assert match_success(
+        List(List(Int()) | List(Str()))[1][1],
+        [[], [["A", "B", "C"], ["D", "E"]]],
+        ("D", "E", "D", "E", "D", "E", "D", "E", "D", "E", "D", "E"),
+    )

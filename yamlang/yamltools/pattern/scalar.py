@@ -20,6 +20,9 @@ class BoolPattern(Pattern):
         if self.value is None or document == self.value:
             yield document
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.value})"
+
 
 class IntPattern(Pattern):
     def __init__(self, value: int | None = None) -> None:
@@ -40,6 +43,9 @@ class IntPattern(Pattern):
         if self.value is None or document == self.value:
             yield document
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.value})"
+
 
 class FloatPattern(Pattern):
     def __init__(self, value: float | None = None) -> None:
@@ -57,6 +63,9 @@ class FloatPattern(Pattern):
         if self.value is None or document == self.value:
             yield document
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.value})"
+
 
 class StrPattern(Pattern):
     def __init__(self, value: str | None = None) -> None:
@@ -73,3 +82,6 @@ class StrPattern(Pattern):
 
         if self.value is None or document == self.value:
             yield document
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.value})"
