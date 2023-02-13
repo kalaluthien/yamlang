@@ -89,6 +89,12 @@ def test_fold_map_format() -> None:
     def format_str(x: str) -> str:
         return f"Str({x})"
 
+    def format_date(x: datetime.date) -> str:
+        return f"Date({x.year}-{x.month}-{x.day})"
+
+    def format_datetime(x: datetime.datetime) -> str:
+        return f"DateTime({x.year}-{x.month}-{x.day} {x.hour}:{x.minute}:{x.second})"
+
     def format_list(xs: list[str]) -> str:
         return f"List({', '.join(xs)})"
 
@@ -101,6 +107,8 @@ def test_fold_map_format() -> None:
         on_int=format_int,
         on_float=format_float,
         on_str=format_str,
+        on_date=format_date,
+        on_datetime=format_datetime,
         on_list=format_list,
         on_dict=format_dict,
     )
@@ -119,6 +127,12 @@ def test_fold_map_format() -> None:
 
     document = "foo"
     assert fold_map(document) == "Str(foo)"
+
+    document = datetime.date(2023, 1, 1)
+    assert fold_map(document) == "Date(2023-1-1)"
+
+    document = datetime.datetime(2023, 1, 1, 12, 34, 56)
+    assert fold_map(document) == "DateTime(2023-1-1 12:34:56)"
 
     document = [1, 2, 3]
     assert fold_map(document) == "List(Int(1), Int(2), Int(3))"

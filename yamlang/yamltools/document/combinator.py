@@ -37,11 +37,11 @@ class FoldMap(Generic[_T]):
         if isinstance(document, str) and self.on_str:
             return self.on_str(document)
 
-        if isinstance(document, datetime.date) and self.on_date:
-            return self.on_date(document)
-
         if isinstance(document, datetime.datetime) and self.on_datetime:
             return self.on_datetime(document)
+
+        if isinstance(document, datetime.date) and self.on_date:
+            return self.on_date(document)
 
         if isinstance(document, list):
             if self.on_list:
