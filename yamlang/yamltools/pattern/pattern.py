@@ -14,7 +14,7 @@ class Pattern(ABC):
     def apply(self, document: Document) -> Iterable[Document]:
         raise NotImplementedError
 
-    def __getitem__(self, __key: int | str | slice) -> FailPattern[Self]:
+    def __getitem__(self, __key: int | str | slice) -> NeverPattern[Self]:
         raise TypeError(self)
 
     @overload
@@ -37,7 +37,7 @@ class Pattern(ABC):
         return ThenPattern(__pattern, self)
 
 
-class FailPattern(Pattern, Generic[_T]):
+class NeverPattern(Pattern, Generic[_T]):
     def __new__(cls) -> _T:
         return cast(_T, super().__new__(cls))
 
@@ -74,7 +74,7 @@ class NullPattern(Pattern):
 
 class OrPattern(Pattern):
     def __init__(self, patterns: Iterable[Pattern]) -> None:
-        self.__patterns = tuple(p for p in patterns if not isinstance(p, FailPattern))
+        self.__patterns = tuple(p for p in patterns if not isinstance(p, NeverPattern))
 
     def apply(self, document: Document) -> Iterable[Document]:
         for pattern in self.__patterns:
@@ -84,7 +84,7 @@ class OrPattern(Pattern):
         return OrPattern(pattern[__key] for pattern in self.__patterns)
 
     def __repr__(self) -> str:
-        pattern_strings = []
+        pattern_strings: list[str] = []
         for pattern in self.__patterns:
             pattern_string = str(pattern)
             if pattern_string.startswith("(") and pattern_string.endswith(")"):

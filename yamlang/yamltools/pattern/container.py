@@ -5,7 +5,7 @@ from itertools import product
 from typing import Generic, Self, TypeVar, final, overload
 
 from yamlang.yamltools import Document
-from yamlang.yamltools.pattern.pattern import FailPattern, Pattern
+from yamlang.yamltools.pattern.pattern import NeverPattern, Pattern
 
 _T1 = TypeVar("_T1", bound=Pattern)
 _T2 = TypeVar("_T2", bound=Pattern)
@@ -71,7 +71,7 @@ class AtPattern(Pattern, Generic[_T1]):
         ...
 
     @overload
-    def __getitem__(self, __key: int | str) -> FailPattern[_T1]:
+    def __getitem__(self, __key: int | str) -> NeverPattern[_T1]:
         ...
 
     def __getitem__(self, __key: int | str) -> Pattern:
@@ -109,7 +109,7 @@ class DictPattern(MappingPattern[_T1]):
             yield dict(zip(self.__patterns.keys(), values))
 
     def __repr__(self) -> str:
-        pattern_strings = []
+        pattern_strings: list[str] = []
         for key, pattern in self.__patterns.items():
             pattern_string = str(pattern)
             if pattern_string.startswith("(") and pattern_string.endswith(")"):
@@ -143,7 +143,7 @@ class GetPattern(Pattern, Generic[_T1]):
         ...
 
     @overload
-    def __getitem__(self, __key: str | int) -> FailPattern[_T1]:
+    def __getitem__(self, __key: str | int) -> NeverPattern[_T1]:
         ...
 
     def __getitem__(self, __key: str | int) -> Pattern:
