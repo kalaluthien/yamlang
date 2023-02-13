@@ -5,7 +5,7 @@ from itertools import product
 from typing import Generic, Self, TypeVar, final, overload
 
 from yamlang.yamltools import Document
-from yamlang.yamltools.pattern.pattern import NeverPattern, Pattern
+from yamlang.yamltools.pattern.pattern import Pattern
 
 _T1 = TypeVar("_T1", bound=Pattern)
 _T2 = TypeVar("_T2", bound=Pattern)
@@ -71,7 +71,11 @@ class AtPattern(Pattern, Generic[_T1]):
         ...
 
     @overload
-    def __getitem__(self, __key: int | str) -> NeverPattern[_T1]:
+    def __getitem__(self, __key: int) -> AtPattern[_T1]:
+        ...
+
+    @overload
+    def __getitem__(self, __key: str) -> GetPattern[_T1]:
         ...
 
     def __getitem__(self, __key: int | str) -> Pattern:
@@ -143,7 +147,11 @@ class GetPattern(Pattern, Generic[_T1]):
         ...
 
     @overload
-    def __getitem__(self, __key: str | int) -> NeverPattern[_T1]:
+    def __getitem__(self, __key: str) -> GetPattern[_T1]:
+        ...
+
+    @overload
+    def __getitem__(self, __key: int) -> AtPattern[_T1]:
         ...
 
     def __getitem__(self, __key: str | int) -> Pattern:

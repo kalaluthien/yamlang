@@ -14,8 +14,9 @@ class Pattern(ABC):
     def apply(self, document: Document) -> Iterable[Document]:
         raise NotImplementedError
 
-    def __getitem__(self, __key: int | str | slice) -> NeverPattern[Self]:
-        raise TypeError(self)
+    @abstractmethod
+    def __getitem__(self, __key: int | str | slice) -> Self:
+        raise NotImplementedError
 
     @overload
     def __or__(self, __pattern: None) -> Self:
@@ -43,6 +44,9 @@ class NeverPattern(Pattern, Generic[_T]):
 
     def apply(self, document: Document) -> Iterable[Document]:
         return iter(())
+
+    def __getitem__(self, __key: int | str | slice) -> Self:
+        return self
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"
@@ -74,7 +78,7 @@ class NullPattern(Pattern):
 
 class OrPattern(Pattern):
     def __init__(self, patterns: Iterable[Pattern]) -> None:
-        self.__patterns = tuple(p for p in patterns if not isinstance(p, NeverPattern))
+        self.__patterns = tuple(patterns)
 
     def apply(self, document: Document) -> Iterable[Document]:
         for pattern in self.__patterns:

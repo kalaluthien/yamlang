@@ -1,8 +1,8 @@
 from collections.abc import Iterable
-from typing import Generic, TypeVar, final
+from typing import Generic, Self, TypeVar, final
 
 from yamlang.yamltools import Document
-from yamlang.yamltools.pattern.pattern import Pattern
+from yamlang.yamltools.pattern.pattern import NeverPattern, Pattern
 
 _T = TypeVar("_T", bool, int, float, str)
 
@@ -10,6 +10,10 @@ _T = TypeVar("_T", bool, int, float, str)
 class ScalarPattern(Pattern, Generic[_T]):
     def __init__(self, value: _T | None = None) -> None:
         self._value = value
+
+    @final
+    def __getitem__(self, __key: int | str | slice) -> Self:
+        return NeverPattern[Self]()
 
     @final
     def __repr__(self) -> str:

@@ -855,6 +855,38 @@ def test_mapping_or_pattern() -> None:
     )
 
 
+def test_scalar_access_pattern() -> None:
+    assert match_failure(Bool()[0], True)
+    assert match_failure(Int()[0], 1)
+    assert match_failure(Float()[0], 1.0)
+    assert match_failure(Str()[0], "A")
+
+    assert match_failure(Bool()[0][0], True)
+    assert match_failure(Int()[0][0], 1)
+    assert match_failure(Float()[0][0], 1.0)
+    assert match_failure(Str()[0][0], "A")
+
+    assert match_failure(Bool()["a"], True)
+    assert match_failure(Int()["a"], 1)
+    assert match_failure(Float()["a"], 1.0)
+    assert match_failure(Str()["a"], "A")
+
+    assert match_failure(Bool()["a"]["b"], True)
+    assert match_failure(Int()["a"]["b"], 1)
+    assert match_failure(Float()["a"]["b"], 1.0)
+    assert match_failure(Str()["a"]["b"], "A")
+
+    assert match_failure(Bool()[0]["a"], True)
+    assert match_failure(Int()[0]["a"], 1)
+    assert match_failure(Float()[0]["a"], 1.0)
+    assert match_failure(Str()[0]["a"], "A")
+
+    assert match_failure(Bool()["a"][0], True)
+    assert match_failure(Int()["a"][0], 1)
+    assert match_failure(Float()["a"][0], 1.0)
+    assert match_failure(Str()["a"][0], "A")
+
+
 def test_list_access_pattern() -> None:
     assert match_success(List(Int())[0], [1, 2, 3, 4], 1)
     assert match_success(List(Int())[2], [1, 2, 3, 4], 3)
