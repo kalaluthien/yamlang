@@ -4,17 +4,17 @@
 - !def proc: # Box * Int -> Int
     unbox: Box
     else: Int
-    in:
-    - if: {Box.With: value}
-      then: value
-      else: else
+  in:
+  - if: {Box.With: value}
+    then: value
+    else: else
 
 - !def proc: # Box -> Int
     std.show: Box
-    in:
-    - unbox: ~
-      else: 0
-    - std.show: ~
+  in:
+  - unbox: ~
+    else: 0
+  - std.show: ~
 
 - do:
   - std.echo: "Empty: {}, With: {}"
