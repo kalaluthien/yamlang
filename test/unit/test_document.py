@@ -7,13 +7,14 @@ def test_load_yaml() -> None:
     document = load(r"{foo: {bar: baz, qux: [12, 34]}}")
     assert document == {"foo": {"bar": "baz", "qux": [12, 34]}}
 
-    document = load(r"{foo: null, bar: yes, baz: off, on: true, no: FALSE}")
+    document = load(r"{foo: null, bar: yes, baz: off, on: true, no: FALSE, ? else}")
     assert document == {
         "foo": "null",
         "bar": "yes",
         "baz": "off",
         "on": True,
         "no": "FALSE",
+        "else": "",
     }
 
     document = load(r"{foo: &A {bar: 2.0, baz: 3.0}, qux: *A}")

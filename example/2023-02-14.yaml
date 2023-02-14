@@ -1,0 +1,25 @@
+- !def data:
+    Box: {Empty, With: Int}
+
+- !def proc: # Box * Int -> Int
+    unbox: Box
+    else: Int
+    in:
+    - if: {Box.With: value}
+      then: value
+      else: else
+
+- !def proc: # Box -> Int
+    std.show: Box
+    in:
+    - unbox: ~
+      else: 0
+    - std.show: ~
+
+- do:
+  - std.echo: "Empty: {}, With: {}"
+  - std.format: ~
+    with:
+      0: {Box.Empty}
+      1: {Box.With: 42}
+  - std.show: ~

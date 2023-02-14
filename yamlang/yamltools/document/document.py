@@ -19,12 +19,12 @@ Document = (
 
 
 def load(source: str | Path) -> Document:
-    # Interpret null as a string "null".
+    # Interpret "null" as a string "null".
     def constructor_null(loader: yaml.Loader, node: yaml.Node) -> Document:
-        return loader.construct_scalar(node)
+        if (value := loader.construct_scalar(node)) == "null":
+            return value
 
     yaml.add_constructor("tag:yaml.org,2002:null", constructor_null)
-    yaml.add_constructor("tag:yaml.org,2002:python/none", constructor_null)
 
     # Reject boolean values that are not "true" or "false".
     def constructor_bool(loader: yaml.Loader, node: yaml.Node) -> Document:
@@ -36,7 +36,14 @@ def load(source: str | Path) -> Document:
         return loader.construct_scalar(node)
 
     yaml.add_constructor("tag:yaml.org,2002:bool", constructor_bool)
-    yaml.add_constructor("tag:yaml.org,2002:python/bool", constructor_bool)
+
+    # Get rid of some keyword tags. For now, we don't need them.
+    def constructor_keyword(loader: yaml.Loader, node: yaml.Node) -> Document:
+        node.value = f"{node.tag} {node.value}".lstrip("!")
+        return loader.construct_scalar(node)
+
+    for keyword in ["def"]:
+        yaml.add_constructor(f"!{keyword}", constructor_keyword)
 
     # Load the text from the source if it is a Path.
     if isinstance(source, Path):
@@ -52,3 +59,10 @@ def load(source: str | Path) -> Document:
     document: Document = yaml.load(text, Loader=yaml.FullLoader)
 
     return document
+
+
+def dump(document: Document) -> str:
+    maybe_text = yaml.dump(document, sort_keys=False, default_flow_style=False)
+    text = str(maybe_text) if maybe_text else ""
+
+    return text
