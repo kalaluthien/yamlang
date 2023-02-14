@@ -26,7 +26,7 @@ def load(source: str | Path) -> Document:
 
     yaml.add_constructor("tag:yaml.org,2002:null", constructor_null)
 
-    # Reject boolean values that are not "true" or "false".
+    # Interpret boolean values that are not "true" or "false" as strings.
     def constructor_bool(loader: yaml.Loader, node: yaml.Node) -> Document:
         if (value := str(node.value)) == "true":
             return True
