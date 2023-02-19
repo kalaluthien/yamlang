@@ -21,14 +21,14 @@ Document = (
 def load(source: str | Path) -> Document:
     # Interpret "null" as a string "null".
     def constructor_null(loader: yaml.Loader, node: yaml.Node) -> Document:
-        if (value := loader.construct_scalar(node)) == "null":
+        if (value := str(node.value).lower()) == "null":
             return value
 
     yaml.add_constructor("tag:yaml.org,2002:null", constructor_null)
 
     # Interpret boolean values that are not "true" or "false" as strings.
     def constructor_bool(loader: yaml.Loader, node: yaml.Node) -> Document:
-        if (value := str(node.value)) == "true":
+        if (value := str(node.value).lower()) == "true":
             return True
         elif value == "false":
             return False
@@ -36,14 +36,6 @@ def load(source: str | Path) -> Document:
         return loader.construct_scalar(node)
 
     yaml.add_constructor("tag:yaml.org,2002:bool", constructor_bool)
-
-    # Get rid of some keyword tags. For now, we don't need them.
-    def constructor_keyword(loader: yaml.Loader, node: yaml.Node) -> Document:
-        node.value = f"{node.tag} {node.value}".lstrip("!")
-        return loader.construct_scalar(node)
-
-    for keyword in ["def"]:
-        yaml.add_constructor(f"!{keyword}", constructor_keyword)
 
     # Load the text from the source if it is a Path.
     if isinstance(source, Path):

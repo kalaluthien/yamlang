@@ -13,7 +13,7 @@ def test_load_yaml() -> None:
         "bar": "yes",
         "baz": "off",
         "on": True,
-        "no": "FALSE",
+        "no": False,
         "else": "",
     }
 

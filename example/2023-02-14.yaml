@@ -1,25 +1,18 @@
-- !def data:
-    Box: {Empty, With: {Int}}
+- def type: # Empty:(Never) + With:(Int) -> Box
+    Box:
+    - Empty: ~
+    - With: Int
 
-- !def proc: # Box * Int -> Int
-    unbox: Box
-    else: Int
+- def function: # show:(Box) -> Int
+    show: Box
   in:
-  - when: {Box.With: {value}}
-    then: {value}
-    else: {else}
-
-- !def proc: # Box -> Int
-    std.show: Box
-  in:
-  - unbox: ~
-    else: 0
-  - std.show: ~
+  - Box: {With}
+  - else: 0
+  - show: ~
 
 - do:
-  - std.echo: "Empty: {}, With: {}"
-  - std.format: ~
+  - format: "Empty: {}, With: {}"
     with:
-      $0: {Box.Empty}
-      $1: {Box.With: 42}
-  - std.show: ~
+      $0: {Box: {Empty}}
+      $1: {Box: {With: 42}}
+  - show: ~
