@@ -1,18 +1,18 @@
 - def type:
     Box:
-    - none: ~ # (~ -> Box) & (Box -> Box)
-    - some: Int # (Int -> Box) & (Box -> Int)
+    - none:
+    - some: Int
 
-- def function: # Box -> Int
+- def function:
     show: Box
   in:
-  - some: ~
+  - some:
   - else: 0
-  - show: ~
+  - show:
 
 - do:
   - format: "none -> {}, some -> {}"
     with:
       $0: {none}
       $1: {some: 42}
-  - show: ~
+  - show:
