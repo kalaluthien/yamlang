@@ -1,18 +1,18 @@
-- def type: # Empty:(Never) + With:(Int) -> Box
+- def type:
     Box:
-    - Empty: ~
-    - With: Int
+    - none: ~ # (~ -> Box) & (Box -> Box)
+    - some: Int # (Int -> Box) & (Box -> Int)
 
-- def function: # show:(Box) -> Int
+- def function: # Box -> Int
     show: Box
   in:
-  - Box: {With}
+  - some: ~
   - else: 0
   - show: ~
 
 - do:
-  - format: "Empty: {}, With: {}"
+  - format: "none -> {}, some -> {}"
     with:
-      $0: {Box: {Empty}}
-      $1: {Box: {With: 42}}
+      $0: {none}
+      $1: {some: 42}
   - show: ~
