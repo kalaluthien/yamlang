@@ -6,8 +6,8 @@
 - def function:
     show: {Box}
   in:
-  - some:
-  - else: 0
+  - when: {some}
+    else: 0
   - show:
 
 - do:
