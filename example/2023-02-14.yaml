@@ -1,10 +1,10 @@
 - def type:
     Box:
     - none:
-    - some: Int
+    - some: {Int}
 
 - def function:
-    show: Box
+    show: {Box}
   in:
   - some:
   - else: 0
