@@ -9,7 +9,6 @@ Inspired by:
 - [StrictYAML](https://github.com/crdoconnor/strictyaml)
 - [GNU Smalltalk Programming Language](https://github.com/gnu-smalltalk/smalltalk)
 - [Racket Programming Language](https://github.com/racket/racket)
-- [The Roc Programming Language](https://github.com/roc-lang/roc)
 - [The P Programming Language](https://github.com/p-org/P)
 
 ## Settings
