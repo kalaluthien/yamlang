@@ -21,18 +21,17 @@ Document = (
 def load(source: str | Path) -> Document:
     # Interpret "null" as a string "null".
     def constructor_null(loader: yaml.Loader, node: yaml.Node) -> Document:
-        if (value := str(node.value).lower()) == "null":
-            return value
+        if str(node.value) in ("NULL", "Null", "null"):
+            return loader.construct_scalar(node)
 
     yaml.add_constructor("tag:yaml.org,2002:null", constructor_null)
 
     # Interpret boolean values that are not "true" or "false" as strings.
     def constructor_bool(loader: yaml.Loader, node: yaml.Node) -> Document:
-        if (value := str(node.value).lower()) == "true":
+        if (value := str(node.value)) in ("TRUE", "True", "true"):
             return True
-        elif value == "false":
+        elif value in ("FALSE", "False", "false"):
             return False
-
         return loader.construct_scalar(node)
 
     yaml.add_constructor("tag:yaml.org,2002:bool", constructor_bool)
