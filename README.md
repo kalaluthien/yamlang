@@ -2,14 +2,12 @@
 ![Badge](https://img.shields.io/badge/python-3.11-blue.svg)
 
 # YamLang
-A language in YAML to transform data in YAML.
-
-Inspired by:
-- [jq](https://github.com/stedolan/jq)
-- [StrictYAML](https://github.com/crdoconnor/strictyaml)
-- [GNU Smalltalk Programming Language](https://github.com/gnu-smalltalk/smalltalk)
-- [Racket Programming Language](https://github.com/racket/racket)
-- [The P Programming Language](https://github.com/p-org/P)
+A language in `YAML` to transform data in `YAML`, inspired by:
+- [jq](https://github.com/stedolan/jq): Pipe and filter.
+- [StrictYAML](https://github.com/crdoconnor/strictyaml): Composable EDSL.
+- [GNU Smalltalk Programming Language](https://github.com/gnu-smalltalk/smalltalk): Multiple parameters for methods.
+- [Racket Programming Language](https://github.com/racket/racket): Homoiconicity.
+- [The P Programming Language](https://github.com/p-org/P): Object as a state machine.
 
 ## Settings
 ```bash
