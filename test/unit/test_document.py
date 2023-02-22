@@ -14,7 +14,7 @@ def test_load_yaml() -> None:
         "baz": "off",
         "on": True,
         "no": False,
-        "else": "",
+        "else": None,
     }
 
     document = load(r"{foo: &A {bar: 2.0, baz: 3.0}, qux: *A}")
