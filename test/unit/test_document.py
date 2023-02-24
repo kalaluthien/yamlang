@@ -52,26 +52,23 @@ def test_map_increment() -> None:
     assert map(document) == {"foo": {"bar": 5, "baz": 6}, "ham": 7}
 
 
-def test_fold_map_increment() -> None:
-    def increment(x: int) -> int:
-        return x + 1
+def test_map_uppercase() -> None:
+    map = Map(on_str=str.upper)
 
-    fold_map = FoldMap[Document](on_int=increment)
+    document = "foo"
+    assert map(document) == "FOO"
 
-    document = 1
-    assert fold_map(document) == 2
+    document = ["foo", "bar", "baz"]
+    assert map(document) == ["FOO", "BAR", "BAZ"]
 
-    document = [1, 2, 3]
-    assert fold_map(document) == [2, 3, 4]
+    document = {"foo": "bar", "baz": "qux"}
+    assert map(document) == {"foo": "BAR", "baz": "QUX"}
 
-    document = {"foo": 1, "bar": 2}
-    assert fold_map(document) == {"foo": 2, "bar": 3}
+    document = {"foo": ["bar", "baz"], "qux": "ham"}
+    assert map(document) == {"foo": ["BAR", "BAZ"], "qux": "HAM"}
 
-    document = {"foo": [1, 2], "bar": 3}
-    assert fold_map(document) == {"foo": [2, 3], "bar": 4}
-
-    document = {"foo": {"bar": 4, "baz": 5}, "ham": 6}
-    assert fold_map(document) == {"foo": {"bar": 5, "baz": 6}, "ham": 7}
+    document = {"foo": {"bar": "ham", "baz": "spam"}, "eggs": "qux"}
+    assert map(document) == {"foo": {"bar": "HAM", "baz": "SPAM"}, "eggs": "QUX"}
 
 
 def test_fold_map_skip_null() -> None:

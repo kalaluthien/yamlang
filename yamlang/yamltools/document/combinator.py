@@ -36,7 +36,6 @@ class _Map:
     on_str: Callable[[str], str] | None = None
     on_date: Callable[[datetime.date], datetime.date] | None = None
     on_datetime: Callable[[datetime.datetime], datetime.datetime] | None = None
-    default: Callable[[Document], Document] = _IDENTITY_FUNCTION
 
 
 @dataclass
@@ -49,7 +48,6 @@ class Map(_Map):
         on_str: Callable[[str], str]
         on_date: Callable[[datetime.date], datetime.date]
         on_datetime: Callable[[datetime.datetime], datetime.datetime]
-        default: Callable[[Document], Document]
 
     @overload
     def __call__(self, document: None) -> None:
@@ -118,7 +116,7 @@ class Map(_Map):
         if isinstance(document, dict):
             return {k: self.apply(v) for k, v in document.items()}
 
-        return self.default(document)
+        return document
 
 
 @dataclass
