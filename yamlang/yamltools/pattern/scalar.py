@@ -31,12 +31,6 @@ class ScalarPattern(Pattern, Generic[_T]):
     def __getitem__(self: ScalarPattern, __key: int | str) -> ScalarPattern:
         return NeverPattern[ScalarPattern]()
 
-    @final
-    def __repr__(self) -> str:
-        if self._value is None:
-            return f"{self.__class__.__name__}(*)"
-        return f"{self.__class__.__name__}({self._value})"
-
 
 class BoolPattern(ScalarPattern[bool]):
     def apply(self, document: Document) -> Iterable[Document]:

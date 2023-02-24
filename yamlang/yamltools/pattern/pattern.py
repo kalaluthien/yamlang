@@ -50,9 +50,6 @@ class NeverPattern(Pattern, Generic[_T]):
     def __getitem__(self, __key: int | str | slice) -> Self:
         return self
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"
-
 
 class NullPattern(Pattern):
     def __init__(self, pattern: Pattern) -> None:
@@ -71,12 +68,6 @@ class NullPattern(Pattern):
     def __getitem__(self, __key: int | str | slice) -> Self:
         return NullPattern(self.__pattern[__key])
 
-    def __repr__(self) -> str:
-        pattern_string = str(self.__pattern)
-        if pattern_string.startswith("(") and pattern_string.endswith(")"):
-            pattern_string = pattern_string[1:-1]
-        return f"({pattern_string})?"
-
 
 class OrPattern(Pattern):
     def __init__(self, patterns: Iterable[Pattern]) -> None:
@@ -88,15 +79,6 @@ class OrPattern(Pattern):
 
     def __getitem__(self, __key: int | str | slice) -> Self:
         return OrPattern(pattern[__key] for pattern in self.__patterns)
-
-    def __repr__(self) -> str:
-        pattern_strings: list[str] = []
-        for pattern in self.__patterns:
-            pattern_string = str(pattern)
-            if pattern_string.startswith("(") and pattern_string.endswith(")"):
-                pattern_string = pattern_string[1:-1]
-            pattern_strings.append(pattern_string)
-        return " | ".join(pattern_strings)
 
 
 class ThenPattern(Pattern):
@@ -110,12 +92,3 @@ class ThenPattern(Pattern):
 
     def __getitem__(self, __key: int | str | slice) -> Self:
         return ThenPattern(self.__frontend_pattern, self.__backend_pattern[__key])
-
-    def __repr__(self) -> str:
-        frontend_string = str(self.__frontend_pattern)
-        if frontend_string.startswith("(") and frontend_string.endswith(")"):
-            frontend_string = frontend_string[1:-1]
-        backend_string = str(self.__backend_pattern)
-        if backend_string.startswith("(") and backend_string.endswith(")"):
-            backend_string = backend_string[1:-1]
-        return f"(({frontend_string}) >> ({backend_string}))"

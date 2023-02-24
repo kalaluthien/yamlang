@@ -26,12 +26,6 @@ class ListPattern(Pattern, Generic[_T1]):
     def __getitem__(self, __key: int) -> GetPattern[_T1]:
         return GetPattern[_T1](self, __key)
 
-    def __repr__(self) -> str:
-        pattern_string = str(self.__pattern)
-        if pattern_string.startswith("(") and pattern_string.endswith(")"):
-            pattern_string = pattern_string[1:-1]
-        return f"{self.__class__.__name__}({pattern_string})"
-
 
 class DictPattern(Pattern, Generic[_T1]):
     def __init__(self, patterns: Mapping[str, _T1]) -> None:
@@ -60,16 +54,6 @@ class DictPattern(Pattern, Generic[_T1]):
 
     def __getitem__(self, __key: str) -> GetPattern[_T1]:
         return GetPattern[_T1](self, __key)
-
-    def __repr__(self) -> str:
-        pattern_strings: list[str] = []
-        for key, pattern in self.__patterns.items():
-            pattern_string = str(pattern)
-            if pattern_string.startswith("(") and pattern_string.endswith(")"):
-                pattern_string = pattern_string[1:-1]
-            pattern_strings.append(f"{key}: {pattern_string}")
-        pattern_string = ", ".join(pattern_strings)
-        return f"{self.__class__.__name__}({{{pattern_string}}})"
 
 
 class GetPattern(Pattern, Generic[_T1]):
@@ -133,6 +117,3 @@ class GetPattern(Pattern, Generic[_T1]):
 
     def __getitem__(self, __key: int | str) -> GetPattern[Any]:
         return GetPattern(self.__pattern, *self.__keys, __key)
-
-    def __repr__(self) -> str:
-        return f"{self.__pattern}[{']['.join(map(str, self.__keys))}]"
