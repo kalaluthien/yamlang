@@ -1,12 +1,13 @@
 - def function:
-    even: {Int: value}
+    even: {Int}
   in:
   - mod: 2
-  - when: {is: 0}
-    then: {value}
+  - is: 0
 
 - do:
   - each: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-  - even:
+  - let: {value}
+  - when: {even}
+    then: {value}
   - join:
   - is: [0, 2, 4, 6, 8]
