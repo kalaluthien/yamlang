@@ -1,11 +1,26 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Iterable
-from typing import Generic, Self, TypeVar, final
+from typing import Generic, final
+
+from typing_extensions import TypeVar
 
 from yamlang.yamltools import Document
 from yamlang.yamltools.pattern.pattern import NeverPattern, Pattern
 
-_T = TypeVar("_T", bool, int, float, str, datetime.date, datetime.datetime)
+_T = TypeVar(
+    "_T",
+    None,
+    bool,
+    int,
+    float,
+    str,
+    datetime.date,
+    datetime.datetime,
+    default=None,
+    infer_variance=True,
+)
 
 
 class ScalarPattern(Pattern, Generic[_T]):
@@ -13,8 +28,8 @@ class ScalarPattern(Pattern, Generic[_T]):
         self._value = value
 
     @final
-    def __getitem__(self, __key: int | str | slice) -> Self:
-        return NeverPattern[Self]()
+    def __getitem__(self: ScalarPattern, __key: int | str) -> ScalarPattern:
+        return NeverPattern[ScalarPattern]()
 
     @final
     def __repr__(self) -> str:

@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Generic, Self, TypeVar, cast, final, overload
+from typing import Generic, Self, cast, final, overload
+
+from typing_extensions import TypeVar
 
 from yamlang.yamltools import Document
 
-_T = TypeVar("_T", bound="Pattern")
+_T = TypeVar("_T", bound="Pattern", default="Pattern", infer_variance=True)
 
 
 class Pattern(ABC):

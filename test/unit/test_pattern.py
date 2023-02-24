@@ -915,35 +915,35 @@ def test_mapping_or_pattern() -> None:
 
 
 def test_scalar_access_pattern() -> None:
-    assert match_failure(Bool()[0], True)
-    assert match_failure(Int()[0], 1)
-    assert match_failure(Float()[0], 1.0)
-    assert match_failure(Str()[0], "A")
+    assert match_failure(Bool()[0], True)  # type: ignore
+    assert match_failure(Int()[0], 1)  # type: ignore
+    assert match_failure(Float()[0], 1.0)  # type: ignore
+    assert match_failure(Str()[0], "A")  # type: ignore
 
-    assert match_failure(Bool()[0][0], True)
-    assert match_failure(Int()[0][0], 1)
-    assert match_failure(Float()[0][0], 1.0)
-    assert match_failure(Str()[0][0], "A")
+    assert match_failure(Bool()[0][0], True)  # type: ignore
+    assert match_failure(Int()[0][0], 1)  # type: ignore
+    assert match_failure(Float()[0][0], 1.0)  # type: ignore
+    assert match_failure(Str()[0][0], "A")  # type: ignore
 
-    assert match_failure(Bool()["a"], True)
-    assert match_failure(Int()["a"], 1)
-    assert match_failure(Float()["a"], 1.0)
-    assert match_failure(Str()["a"], "A")
+    assert match_failure(Bool()["a"], True)  # type: ignore
+    assert match_failure(Int()["a"], 1)  # type: ignore
+    assert match_failure(Float()["a"], 1.0)  # type: ignore
+    assert match_failure(Str()["a"], "A")  # type: ignore
 
-    assert match_failure(Bool()["a"]["b"], True)
-    assert match_failure(Int()["a"]["b"], 1)
-    assert match_failure(Float()["a"]["b"], 1.0)
-    assert match_failure(Str()["a"]["b"], "A")
+    assert match_failure(Bool()["a"]["b"], True)  # type: ignore
+    assert match_failure(Int()["a"]["b"], 1)  # type: ignore
+    assert match_failure(Float()["a"]["b"], 1.0)  # type: ignore
+    assert match_failure(Str()["a"]["b"], "A")  # type: ignore
 
-    assert match_failure(Bool()[0]["a"], True)
-    assert match_failure(Int()[0]["a"], 1)
-    assert match_failure(Float()[0]["a"], 1.0)
-    assert match_failure(Str()[0]["a"], "A")
+    assert match_failure(Bool()[0]["a"], True)  # type: ignore
+    assert match_failure(Int()[0]["a"], 1)  # type: ignore
+    assert match_failure(Float()[0]["a"], 1.0)  # type: ignore
+    assert match_failure(Str()[0]["a"], "A")  # type: ignore
 
-    assert match_failure(Bool()["a"][0], True)
-    assert match_failure(Int()["a"][0], 1)
-    assert match_failure(Float()["a"][0], 1.0)
-    assert match_failure(Str()["a"][0], "A")
+    assert match_failure(Bool()["a"][0], True)  # type: ignore
+    assert match_failure(Int()["a"][0], 1)  # type: ignore
+    assert match_failure(Float()["a"][0], 1.0)  # type: ignore
+    assert match_failure(Str()["a"][0], "A")  # type: ignore
 
 
 def test_list_access_pattern() -> None:
@@ -1007,6 +1007,14 @@ def test_nested_list_access_pattern() -> None:
     assert match_failure(List(List(Int()))[1][3], [[1, 2, 3], [4, 5, 6]])
     assert match_failure(List(List(Int()))[0][0], [[], [4, 5, 6]])
     assert match_failure(List(List(Int()))[1][0], [[1, 2, 3], []])
+
+    # a = List(Dict({"": List(Dict({"": List(Int())}))}))
+    # b = a[0]
+    # c = b[""]
+    # d = c[0]
+    # e = d[""]
+    # f = e[0]
+    # g = f[0]
 
     assert match_success(List(List(Int() | Str()))[0][1], [[1, 2, 3], [4, 5, 6]], 2)
     assert match_success(List(List(Int() | Str()))[1][0], [["A", 2], ["B", 5]], "B")
@@ -1203,15 +1211,15 @@ def test_nested_dict_and_list_access_pattern() -> None:
         {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
     )
     assert match_failure(
-        Dict({"a": List(Dict({"b": Int()}))})["a"]["b"],
+        Dict({"a": List(Dict({"b": Int()}))})["a"]["b"],  # type: ignore
         {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
     )
     assert match_failure(
-        Dict({"a": List(Dict({"b": Int()}))})["a"]["b"][0],
+        Dict({"a": List(Dict({"b": Int()}))})["a"]["b"][0],  # type: ignore
         {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
     )
     assert match_failure(
-        Dict({"a": List(Dict({"b": Int()}))})["a"][0]["b"][0],
+        Dict({"a": List(Dict({"b": Int()}))})["a"][0]["b"][0],  # type: ignore
         {"a": [{"b": 1}, {"b": 2}, {"b": 3}]},
     )
 

@@ -1,6 +1,6 @@
 import datetime
 
-from yamlang.yamltools import Document, FoldMap, load
+from yamlang.yamltools import Document, FoldMap, Map, load
 
 
 def test_load_yaml() -> None:
@@ -30,13 +30,38 @@ def test_load_yaml() -> None:
     }
 
 
+def test_map_increment() -> None:
+    def increment(x: int) -> int:
+        return x + 1
+
+    map = Map(on_int=increment)
+
+    document = 1
+    assert map(document) == 2
+
+    document = [1, 2, 3]
+    assert map(document) == [2, 3, 4]
+
+    document = {"foo": 1, "bar": 2}
+    assert map(document) == {"foo": 2, "bar": 3}
+
+    document = {"foo": [1, 2], "bar": 3}
+    assert map(document) == {"foo": [2, 3], "bar": 4}
+
+    document = {"foo": {"bar": 4, "baz": 5}, "ham": 6}
+    assert map(document) == {"foo": {"bar": 5, "baz": 6}, "ham": 7}
+
+
 def test_fold_map_increment() -> None:
     def increment(x: int) -> int:
         return x + 1
 
     fold_map = FoldMap[Document](on_int=increment)
 
-    document: Document = [1, 2, 3]
+    document = 1
+    assert fold_map(document) == 2
+
+    document = [1, 2, 3]
     assert fold_map(document) == [2, 3, 4]
 
     document = {"foo": 1, "bar": 2}
@@ -114,7 +139,7 @@ def test_fold_map_format() -> None:
         on_dict=format_dict,
     )
 
-    document: Document = None
+    document = None
     assert fold_map(document) == "None"
 
     document = True
