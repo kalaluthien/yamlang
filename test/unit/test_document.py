@@ -1,9 +1,11 @@
 import datetime
 
-from yamlang.yamltools import Document, FoldMap, Map, load
+from yamlang.yamltools import Document, FoldMap, Map, load, patch_yaml_loader
 
 
 def test_load_yaml() -> None:
+    patch_yaml_loader()
+
     document = load(r"{foo: {bar: baz, qux: [12, 34]}}")
     assert document == {"foo": {"bar": "baz", "qux": [12, 34]}}
 

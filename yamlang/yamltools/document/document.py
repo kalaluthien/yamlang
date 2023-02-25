@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import datetime
 from pathlib import Path
+from typing import overload
 
 import yaml
+from typing_extensions import TypeVar
 
 Document = (
     None
@@ -18,25 +20,31 @@ Document = (
 )
 
 
-def load(path: str | Path | None = None, *, text: str | None = None) -> Document:
-    # Interpret "null" as a string "null".
+def patch_yaml_loader(
+    patch_null: bool = True,
+    patch_bool: bool = True,
+) -> None:
     def constructor_null(loader: yaml.Loader, node: yaml.Node) -> Document:
+        # Interpret "null" as a string "null".
         if str(node.value) in ("NULL", "Null", "null"):
             return loader.construct_scalar(node)
 
-    yaml.add_constructor("tag:yaml.org,2002:null", constructor_null)
-
-    # Interpret boolean values that are not "true" or "false" as strings.
     def constructor_bool(loader: yaml.Loader, node: yaml.Node) -> Document:
+        # Interpret boolean values that are not "true" or "false" as strings.
         if (value := str(node.value)) in ("TRUE", "True", "true"):
             return True
         elif value in ("FALSE", "False", "false"):
             return False
         return loader.construct_scalar(node)
 
-    yaml.add_constructor("tag:yaml.org,2002:bool", constructor_bool)
+    if patch_null:
+        yaml.add_constructor("tag:yaml.org,2002:null", constructor_null)
 
-    # Load the text from the source if it is a Path.
+    if patch_bool:
+        yaml.add_constructor("tag:yaml.org,2002:bool", constructor_bool)
+
+
+def load(text: str | None = None, *, path: str | Path | None = None) -> Document:
     if path is not None:
         if text is not None:
             raise ValueError("Only one of path or text must be specified.")
@@ -53,14 +61,23 @@ def load(path: str | Path | None = None, *, text: str | None = None) -> Document
     if text is None:
         raise ValueError("Either path or text must be specified.")
 
-    # Load the document from the text.
-    document: Document = yaml.load(text, Loader=yaml.FullLoader)
-
-    return document
+    return yaml.load(text, Loader=yaml.FullLoader)
 
 
+_T = TypeVar("_T", infer_variance=True)
+
+
+@overload
 def dump(document: Document) -> str:
-    maybe_text = yaml.dump(document, sort_keys=False, default_flow_style=False)
-    text = str(maybe_text) if maybe_text else ""
+    ...
 
-    return text
+
+@overload
+def dump(document: Document, *, default: _T) -> str | _T:
+    ...
+
+
+def dump(document: Document, *, default: _T | str = "") -> str | _T:
+    maybe_text = yaml.dump(document, sort_keys=False, default_flow_style=False)
+
+    return str(maybe_text) if maybe_text else default
