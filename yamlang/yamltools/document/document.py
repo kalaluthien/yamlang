@@ -18,7 +18,7 @@ Document = (
 )
 
 
-def load(source: str | Path) -> Document:
+def load(path: str | Path | None = None, *, text: str | None = None) -> Document:
     # Interpret "null" as a string "null".
     def constructor_null(loader: yaml.Loader, node: yaml.Node) -> Document:
         if str(node.value) in ("NULL", "Null", "null"):
@@ -37,14 +37,21 @@ def load(source: str | Path) -> Document:
     yaml.add_constructor("tag:yaml.org,2002:bool", constructor_bool)
 
     # Load the text from the source if it is a Path.
-    if isinstance(source, Path):
-        if not source.is_file():
-            raise FileNotFoundError(f"File not found: {source}")
+    if path is not None:
+        if text is not None:
+            raise ValueError("Only one of path or text must be specified.")
 
-        with source.open() as file:
+        if not (path := Path(path)).exists():
+            raise FileNotFoundError(f"File not found: {path}")
+
+        if not path.is_file():
+            raise ValueError(f"Not a file: {path}")
+
+        with path.open() as file:
             text = file.read()
-    else:
-        text = source
+
+    if text is None:
+        raise ValueError("Either path or text must be specified.")
 
     # Load the document from the text.
     document: Document = yaml.load(text, Loader=yaml.FullLoader)
