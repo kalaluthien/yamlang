@@ -701,7 +701,7 @@ def test_dict_of_list_pattern() -> None:
     )
 
 
-def test_scalar_null_pattern() -> None:
+def test_scalar_maybe_pattern() -> None:
     assert match_success(Bool() | None, True)
     assert match_success(Bool() | None, False)
     assert match_success(Bool() | None, None)

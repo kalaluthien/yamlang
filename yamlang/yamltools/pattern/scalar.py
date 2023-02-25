@@ -7,7 +7,7 @@ from typing import Generic, final
 from typing_extensions import TypeVar
 
 from yamlang.yamltools import Document
-from yamlang.yamltools.pattern.pattern import NeverPattern, Pattern
+from yamlang.yamltools.pattern.pattern import Pattern
 
 _T = TypeVar(
     "_T",
@@ -29,7 +29,12 @@ class ScalarPattern(Pattern, Generic[_T]):
 
     @final
     def __getitem__(self: ScalarPattern, __key: int | str) -> ScalarPattern:
-        return NeverPattern[ScalarPattern]()
+        return NeverPattern()
+
+
+class NeverPattern(ScalarPattern):
+    def apply(self, document: Document) -> Iterable[Document]:
+        return iter(())
 
 
 class BoolPattern(ScalarPattern[bool]):

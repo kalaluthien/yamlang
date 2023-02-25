@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from typing import Generic, Self, cast, final, overload
+from typing import Generic, Self, final, overload
 
 from typing_extensions import TypeVar
 
 from yamlang.yamltools import Document
 
-_T = TypeVar("_T", bound="Pattern", default="Pattern", infer_variance=True)
+_T1 = TypeVar("_T1", bound="Pattern", default="Pattern", infer_variance=True)
+_T2 = TypeVar("_T2", bound="Pattern", default="Pattern", infer_variance=True)
 
 
 class Pattern(ABC):
@@ -17,7 +18,7 @@ class Pattern(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def __getitem__(self, __key: int | str | slice) -> Self:
+    def __getitem__(self, __key: int | str) -> Self:
         raise NotImplementedError
 
     @overload
@@ -25,34 +26,23 @@ class Pattern(ABC):
         ...
 
     @overload
-    def __or__(self, __pattern: _T) -> Self | _T:
+    def __or__(self, __pattern: _T1) -> Self | _T1:
         ...
 
     @final
-    def __or__(self, __pattern: _T | None) -> Self | _T:
+    def __or__(self, __pattern: _T1 | None) -> Self | _T1:
         if __pattern is None:
-            return NullPattern(self)
+            return MaybePattern(self)
 
-        return OrPattern([self, __pattern])
+        return OrPattern(self, __pattern)
 
     @final
     def __rrshift__(self, __pattern: Pattern) -> Self:
         return ThenPattern(__pattern, self)
 
 
-class NeverPattern(Pattern, Generic[_T]):
-    def __new__(cls) -> _T:
-        return cast(_T, super().__new__(cls))
-
-    def apply(self, document: Document) -> Iterable[Document]:
-        return iter(())
-
-    def __getitem__(self, __key: int | str | slice) -> Self:
-        return self
-
-
-class NullPattern(Pattern):
-    def __init__(self, pattern: Pattern) -> None:
+class MaybePattern(Pattern, Generic[_T1]):
+    def __init__(self, pattern: _T1) -> None:
         self.__pattern = pattern
 
     def apply(self, document: Document) -> Iterable[Document]:
@@ -62,33 +52,35 @@ class NullPattern(Pattern):
             yield next(results)
         except StopIteration:
             yield None
+            return
 
         yield from results
 
-    def __getitem__(self, __key: int | str | slice) -> Self:
-        return NullPattern(self.__pattern[__key])
+    def __getitem__(self, __key: int | str) -> Self:
+        return MaybePattern(self.__pattern[__key])
 
 
-class OrPattern(Pattern):
-    def __init__(self, patterns: Iterable[Pattern]) -> None:
-        self.__patterns = tuple(patterns)
-
-    def apply(self, document: Document) -> Iterable[Document]:
-        for pattern in self.__patterns:
-            yield from pattern.apply(document)
-
-    def __getitem__(self, __key: int | str | slice) -> Self:
-        return OrPattern(pattern[__key] for pattern in self.__patterns)
-
-
-class ThenPattern(Pattern):
-    def __init__(self, frontend_pattern: Pattern, backend_pattern: Pattern) -> None:
-        self.__frontend_pattern = frontend_pattern
-        self.__backend_pattern = backend_pattern
+class OrPattern(Pattern, Generic[_T1, _T2]):
+    def __init__(self, left_pattern: _T1, right_pattern: _T2) -> None:
+        self.__left_pattern = left_pattern
+        self.__right_pattern = right_pattern
 
     def apply(self, document: Document) -> Iterable[Document]:
-        for result in self.__frontend_pattern.apply(document):
-            yield from self.__backend_pattern.apply(result)
+        yield from self.__left_pattern.apply(document)
+        yield from self.__right_pattern.apply(document)
 
-    def __getitem__(self, __key: int | str | slice) -> Self:
-        return ThenPattern(self.__frontend_pattern, self.__backend_pattern[__key])
+    def __getitem__(self, __key: int | str) -> Self:
+        return OrPattern(self.__left_pattern[__key], self.__right_pattern[__key])
+
+
+class ThenPattern(Pattern, Generic[_T1, _T2]):
+    def __init__(self, left_pattern: _T1, right_pattern: _T2) -> None:
+        self.__left_pattern = left_pattern
+        self.__right_pattern = right_pattern
+
+    def apply(self, document: Document) -> Iterable[Document]:
+        for result in self.__left_pattern.apply(document):
+            yield from self.__right_pattern.apply(result)
+
+    def __getitem__(self, __key: int | str) -> Self:
+        return ThenPattern(self.__left_pattern, self.__right_pattern[__key])
