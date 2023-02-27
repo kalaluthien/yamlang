@@ -26,6 +26,10 @@ class Pattern(ABC):
         ...
 
     @overload
+    def __or__(self, __pattern: NeverPattern) -> Self:
+        ...
+
+    @overload
     def __or__(self, __pattern: _T1) -> Self | _T1:
         ...
 
@@ -34,11 +38,22 @@ class Pattern(ABC):
         if __pattern is None:
             return MaybePattern(self)
 
+        if isinstance(__pattern, NeverPattern):
+            return self
+
         return OrPattern(self, __pattern)
 
     @final
     def __rrshift__(self, __pattern: Pattern) -> Self:
         return ThenPattern(__pattern, self)
+
+
+class NeverPattern(Pattern):
+    def apply(self, document: Document) -> Iterable[None]:
+        return iter(())
+
+    def __getitem__(self, __key: int | str) -> Self:
+        return self
 
 
 class MaybePattern(Pattern, Generic[_T1]):
