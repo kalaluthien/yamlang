@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic, overload
@@ -11,17 +10,7 @@ from yamlang.yamltools.document.document import Document
 
 _T = TypeVar("_T", bound=Document, default=Document, infer_variance=True)
 _T2 = TypeVar("_T2", bound=Document, default=Document, infer_variance=True)
-_F = (
-    None
-    | bool
-    | int
-    | float
-    | str
-    | datetime.date
-    | datetime.datetime
-    | list[_T]
-    | dict[str, _T]
-)
+_F = None | bool | int | float | str | list[_T] | dict[str, _T]
 
 
 _IDENTITY_FUNCTION: Any = lambda x: x
@@ -34,8 +23,6 @@ class _Map:
     on_int: Callable[[int], int] | None = None
     on_float: Callable[[float], float] | None = None
     on_str: Callable[[str], str] | None = None
-    on_date: Callable[[datetime.date], datetime.date] | None = None
-    on_datetime: Callable[[datetime.datetime], datetime.datetime] | None = None
 
 
 @dataclass
@@ -46,8 +33,6 @@ class Map(_Map):
         on_int: Callable[[int], int]
         on_float: Callable[[float], float]
         on_str: Callable[[str], str]
-        on_date: Callable[[datetime.date], datetime.date]
-        on_datetime: Callable[[datetime.datetime], datetime.datetime]
 
     @overload
     def __call__(self, document: None) -> None:
@@ -67,14 +52,6 @@ class Map(_Map):
 
     @overload
     def __call__(self, document: str) -> str:
-        ...
-
-    @overload
-    def __call__(self, document: datetime.datetime) -> datetime.datetime:
-        ...
-
-    @overload
-    def __call__(self, document: datetime.date) -> datetime.date:
         ...
 
     @overload
@@ -104,12 +81,6 @@ class Map(_Map):
         if isinstance(document, str) and self.on_str:
             return self.on_str(document)
 
-        if isinstance(document, datetime.datetime) and self.on_datetime:
-            return self.on_datetime(document)
-
-        if isinstance(document, datetime.date) and self.on_date:
-            return self.on_date(document)
-
         if isinstance(document, list):
             return [self.apply(x) for x in document]
 
@@ -126,8 +97,6 @@ class _FoldMap(Generic[_T]):
     on_int: Callable[[int], _T] | None = None
     on_float: Callable[[float], _T] | None = None
     on_str: Callable[[str], _T] | None = None
-    on_date: Callable[[datetime.date], _T] | None = None
-    on_datetime: Callable[[datetime.datetime], _T] | None = None
     on_list: Callable[[list[_T]], _T] | None = None
     on_dict: Callable[[dict[str, _T]], _T] | None = None
     default: Callable[[_F[_T]], _T] = _IDENTITY_FUNCTION
@@ -141,8 +110,6 @@ class FoldMap(_FoldMap[_T]):
         on_int: Callable[[int], _T]
         on_float: Callable[[float], _T]
         on_str: Callable[[str], _T]
-        on_date: Callable[[datetime.date], _T]
-        on_datetime: Callable[[datetime.datetime], _T]
         on_list: Callable[[list[_T]], _T]
         on_dict: Callable[[dict[str, _T]], _T]
         default: Callable[[_F[_T]], _T]
@@ -165,14 +132,6 @@ class FoldMap(_FoldMap[_T]):
 
     @overload
     def __call__(self, document: str) -> _T:
-        ...
-
-    @overload
-    def __call__(self, document: datetime.datetime) -> _T:
-        ...
-
-    @overload
-    def __call__(self, document: datetime.date) -> _T:
         ...
 
     @overload
@@ -201,12 +160,6 @@ class FoldMap(_FoldMap[_T]):
 
         if isinstance(document, str) and self.on_str:
             return self.on_str(document)
-
-        if isinstance(document, datetime.datetime) and self.on_datetime:
-            return self.on_datetime(document)
-
-        if isinstance(document, datetime.date) and self.on_date:
-            return self.on_date(document)
 
         if isinstance(document, list):
             if self.on_list:

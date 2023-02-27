@@ -33,12 +33,12 @@ class ScalarPattern(Pattern, Generic[_T]):
 
 
 class NeverPattern(ScalarPattern):
-    def apply(self, document: Document) -> Iterable[Document]:
+    def apply(self, document: Document) -> Iterable[None]:
         return iter(())
 
 
 class BoolPattern(ScalarPattern[bool]):
-    def apply(self, document: Document) -> Iterable[Document]:
+    def apply(self, document: Document) -> Iterable[bool]:
         if isinstance(document, list):
             for item in document:
                 yield from self.apply(item)
@@ -52,7 +52,7 @@ class BoolPattern(ScalarPattern[bool]):
 
 
 class IntPattern(ScalarPattern[int]):
-    def apply(self, document: Document) -> Iterable[Document]:
+    def apply(self, document: Document) -> Iterable[int]:
         if isinstance(document, list):
             for item in document:
                 yield from self.apply(item)
@@ -69,7 +69,7 @@ class IntPattern(ScalarPattern[int]):
 
 
 class FloatPattern(ScalarPattern[float]):
-    def apply(self, document: Document) -> Iterable[Document]:
+    def apply(self, document: Document) -> Iterable[float]:
         if isinstance(document, list):
             for item in document:
                 yield from self.apply(item)
@@ -83,44 +83,13 @@ class FloatPattern(ScalarPattern[float]):
 
 
 class StrPattern(ScalarPattern[str]):
-    def apply(self, document: Document) -> Iterable[Document]:
+    def apply(self, document: Document) -> Iterable[str]:
         if isinstance(document, list):
             for item in document:
                 yield from self.apply(item)
             return
 
         if not isinstance(document, str):
-            return
-
-        if self._value is None or document == self._value:
-            yield document
-
-
-class DatePattern(ScalarPattern[datetime.date]):
-    def apply(self, document: Document) -> Iterable[Document]:
-        if isinstance(document, list):
-            for item in document:
-                yield from self.apply(item)
-            return
-
-        if not isinstance(document, datetime.date):
-            return
-
-        if isinstance(document, datetime.datetime):
-            return
-
-        if self._value is None or document == self._value:
-            yield document
-
-
-class DateTimePattern(ScalarPattern[datetime.datetime]):
-    def apply(self, document: Document) -> Iterable[Document]:
-        if isinstance(document, list):
-            for item in document:
-                yield from self.apply(item)
-            return
-
-        if not isinstance(document, datetime.datetime):
             return
 
         if self._value is None or document == self._value:

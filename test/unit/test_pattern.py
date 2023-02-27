@@ -1,8 +1,4 @@
-import datetime
-
 from yamlang.yamltools import BoolPattern as Bool
-from yamlang.yamltools import DatePattern as Date
-from yamlang.yamltools import DateTimePattern as DateTime
 from yamlang.yamltools import DictPattern as Dict
 from yamlang.yamltools import Document
 from yamlang.yamltools import FloatPattern as Float
@@ -148,61 +144,6 @@ def test_str_pattern() -> None:
     assert match_success(Str("a"), ("a", "a", "a"))
     assert match_success(Str("a"), ("", "a", "b", "a", ""), ("a", "a"))
     assert match_failure(Str("a"), ("", "b", "b"))
-
-
-def test_date_pattern() -> None:
-    assert match_success(Date(), datetime.date(2019, 1, 1))
-    assert match_failure(Date(), datetime.datetime(2019, 1, 1))
-    assert match_failure(Date(), None)
-    assert match_failure(Date(), 0)
-    assert match_failure(Date(), "2019-01-01")
-    assert match_failure(Date(), [])
-
-    assert match_success(
-        Date(),
-        (datetime.date(2019, 1, 1), datetime.datetime(2019, 1, 2)),
-        (datetime.date(2019, 1, 1),),
-    )
-    assert match_success(
-        Date(),
-        (datetime.date(2019, 1, 1), datetime.date(2019, 1, 2), "2019-01-03"),
-        (datetime.date(2019, 1, 1), datetime.date(2019, 1, 2)),
-    )
-    assert match_failure(
-        Date(),
-        (datetime.datetime(2020, 1, 1), datetime.datetime(2021, 1, 1)),
-    )
-    assert match_failure(
-        Date(),
-        ("2019-01-01", "2019-01-02", "2019-01-03", "2019-01-04"),
-    )
-
-
-def test_datetime_pattern() -> None:
-    assert match_success(DateTime(), datetime.datetime(2019, 1, 1, 23, 59, 59))
-    assert match_success(DateTime(), datetime.datetime(2023, 12, 31))
-    assert match_failure(DateTime(), datetime.date(2019, 1, 1))
-    assert match_failure(DateTime(), None)
-    assert match_failure(DateTime(), 0)
-    assert match_failure(DateTime(), "2019-01-01")
-    assert match_failure(DateTime(), [])
-
-    assert match_success(
-        DateTime(),
-        (
-            datetime.datetime(2019, 1, 1, 23, 59, 59),
-            datetime.datetime(2019, 1, 2, 0, 0, 0),
-        ),
-    )
-    assert match_success(
-        DateTime(),
-        (
-            "2019-01-01 23:59:59",
-            datetime.datetime(2019, 1, 2, 12, 34, 56),
-            datetime.date(2019, 1, 3),
-        ),
-        (datetime.datetime(2019, 1, 2, 12, 34, 56),),
-    )
 
 
 def test_list_pattern() -> None:

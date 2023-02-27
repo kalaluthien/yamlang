@@ -27,8 +27,8 @@ def test_load_yaml() -> None:
 
     document = load(r"{foo: [2023-01-01], bar: [2023-01-01 12:34:56]}")
     assert document == {
-        "foo": [datetime.date(2023, 1, 1)],
-        "bar": [datetime.datetime(2023, 1, 1, 12, 34, 56)],
+        "foo": ["2023-01-01"],
+        "bar": ["2023-01-01 12:34:56"],
     }
 
 
