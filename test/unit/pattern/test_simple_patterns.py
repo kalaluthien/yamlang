@@ -171,7 +171,7 @@ def test_scalar_or_pattern() -> None:
 
     assert match_success(Int(1) | Int(2) | Str(), 1)
     assert match_success(Int(1) | Int(2) | Str(), 2)
-    assert match_success(Int(1) | Int(2) | Str(), "")
+    assert match_success(Int(1) | Int(2) | Str(), ")")
     assert match_success(Int(1) | Int(2) | Str(), "A")
     assert match_success(Int(1) | Int(2) | Str(), (1, 2, "A", "B"))
     assert match_success(Int(1) | Int(2) | Str(), ("A", 2, 1), (1, 2, "A"))
@@ -183,7 +183,7 @@ def test_scalar_or_pattern() -> None:
     assert match_success(Int(1) | Int(2) | Str() | None, 1)
     assert match_success(Int(1) | Int(2) | Str() | None, 2)
     assert match_success(Int(1) | Int(2) | Str() | None, 3, None)
-    assert match_success(Int(1) | Int(2) | Str() | None, "")
+    assert match_success(Int(1) | Int(2) | Str() | None, ")")
     assert match_success(Int(1) | Int(2) | Str() | None, "A")
     assert match_success(Int(1) | Int(2) | Str() | None, None)
     assert match_success(Int(1) | Int(2) | Str() | None, (None,))
@@ -295,29 +295,29 @@ def test_list_pattern() -> None:
 
 
 def test_dict_pattern() -> None:
-    assert match_success(Dict({}), {})
-    assert match_success(Dict({}), {"a": 1}, {})
-    assert match_failure(Dict({}), None)
-    assert match_failure(Dict({}), [])
+    assert match_success(Dict(), {})
+    assert match_success(Dict(), {"a": 1}, {})
+    assert match_failure(Dict(), None)
+    assert match_failure(Dict(), [])
 
-    assert match_success(Dict({"a": Int()}), {"a": 1})
-    assert match_success(Dict({"a": Int()}), {"a": 1, "b": "B"}, {"a": 1})
-    assert match_success(Dict({"a": Int(1)}), {"a": 1})
-    assert match_success(Dict({"a": Int(), "b": Str()}), {"a": 1, "b": "B"})
-    assert match_success(Dict({"a": Int(1), "b": Str()}), {"a": 1, "b": "B"})
-    assert match_success(Dict({"a": Int(), "b": Str("B")}), {"a": 1, "b": "B"})
-    assert match_failure(Dict({"a": Int(1)}), {"a": 2})
-    assert match_failure(Dict({"a": Int()}), {})
-    assert match_failure(Dict({"a": Int()}), {"b": "B"})
-    assert match_failure(Dict({"a": Int(), "b": Str()}), {"a": 1})
-    assert match_failure(Dict({"a": Int(), "b": Str()}), {"b": "B"})
-    assert match_failure(Dict({"a": Int(), "b": Str()}), {"a": None, "b": "B"})
-    assert match_failure(Dict({"a": Int(), "b": Str()}), {"a": 1, "b": None})
-    assert match_failure(Dict({"a": Int(1), "b": Str()}), {"a": 2, "b": "B"})
-    assert match_failure(Dict({"a": Int(), "b": Str("B")}), {"a": 1, "b": "A"})
+    assert match_success(Dict(a=Int()), {"a": 1})
+    assert match_success(Dict(a=Int()), {"a": 1, "b": "B"}, {"a": 1})
+    assert match_success(Dict(a=Int(1)), {"a": 1})
+    assert match_success(Dict(a=Int(), b=Str()), {"a": 1, "b": "B"})
+    assert match_success(Dict(a=Int(1), b=Str()), {"a": 1, "b": "B"})
+    assert match_success(Dict(a=Int(), b=Str("B")), {"a": 1, "b": "B"})
+    assert match_failure(Dict(a=Int(1)), {"a": 2})
+    assert match_failure(Dict(a=Int()), {})
+    assert match_failure(Dict(a=Int()), {"b": "B"})
+    assert match_failure(Dict(a=Int(), b=Str()), {"a": 1})
+    assert match_failure(Dict(a=Int(), b=Str()), {"b": "B"})
+    assert match_failure(Dict(a=Int(), b=Str()), {"a": None, "b": "B"})
+    assert match_failure(Dict(a=Int(), b=Str()), {"a": 1, "b": None})
+    assert match_failure(Dict(a=Int(1), b=Str()), {"a": 2, "b": "B"})
+    assert match_failure(Dict(a=Int(), b=Str("B")), {"a": 1, "b": "A"})
 
     assert match_success(
-        Dict({"a": Int(), "b": Str()}),
+        Dict(a=Int(), b=Str()),
         {"a": [1, 2], "b": ["A", "B"]},
         (
             {"a": 1, "b": "A"},
@@ -327,7 +327,7 @@ def test_dict_pattern() -> None:
         ),
     )
     assert match_success(
-        Dict({"a": Int(), "b": Str(), "c": Bool()}),
+        Dict(a=Int(), b=Str(), c=Bool()),
         {"a": [1], "b": ["A", "B", "C"], "c": [True, False]},
         (
             {"a": 1, "b": "A", "c": True},
@@ -339,7 +339,7 @@ def test_dict_pattern() -> None:
         ),
     )
     assert match_success(
-        Dict({"a": Int(), "b": Str(), "c": Bool()}),
+        Dict(a=Int(), b=Str(), c=Bool()),
         {"a": [1, None], "b": ["A", "B", None], "c": False},
         (
             {"a": 1, "b": "A", "c": False},
@@ -347,14 +347,14 @@ def test_dict_pattern() -> None:
         ),
     )
     assert match_failure(
-        Dict({"a": Int(), "b": Str(), "c": Bool()}),
+        Dict(a=Int(), b=Str(), c=Bool()),
         {"a": [], "b": ["A", "B", "C"], "c": [True, False]},
     )
     assert match_failure(
-        Dict({"a": Int(), "b": Str(), "c": Bool()}),
+        Dict(a=Int(), b=Str(), c=Bool()),
         {"a": [None], "b": ["A", "B", "C"], "c": [True, False]},
     )
     assert match_failure(
-        Dict({"a": Int(), "b": Str(), "c": Bool()}),
+        Dict(a=Int(), b=Str(), c=Bool()),
         {"a": None, "b": ["A", "B", "C"], "c": [True, False]},
     )

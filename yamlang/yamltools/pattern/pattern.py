@@ -44,8 +44,8 @@ class Pattern(ABC):
         return OrPattern(self, __pattern)
 
     @final
-    def __rrshift__(self, __pattern: Pattern) -> Self:
-        return ThenPattern(__pattern, self)
+    def __get__(self, __instance: Pattern, __owner: type[Pattern]) -> Self:
+        return ThenPattern(__instance, self)
 
 
 class NeverPattern(Pattern):

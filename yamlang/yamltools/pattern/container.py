@@ -34,7 +34,7 @@ class ListPattern(Pattern, Generic[_T1]):
 
 
 class DictPattern(Pattern, Generic[_T1]):
-    def __init__(self, patterns: Mapping[str, _T1]) -> None:
+    def __init__(self, **patterns: _T1) -> None:
         self.__patterns = dict(patterns)
 
     def apply(self, document: Document) -> Iterable[dict[str, Document]]:
