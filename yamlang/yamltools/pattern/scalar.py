@@ -31,7 +31,11 @@ class ScalarPattern(Pattern, Generic[_T]):
     def __getitem__(self, __key: int | str) -> NeverPattern:
         return NeverPattern()
 
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}: {self._value!r}"
 
+
+@final
 class BoolPattern(ScalarPattern[bool]):
     def apply(self, document: Document) -> Iterable[bool]:
         if isinstance(document, list):
@@ -46,6 +50,7 @@ class BoolPattern(ScalarPattern[bool]):
             yield document
 
 
+@final
 class IntPattern(ScalarPattern[int]):
     def apply(self, document: Document) -> Iterable[int]:
         if isinstance(document, list):
@@ -63,6 +68,7 @@ class IntPattern(ScalarPattern[int]):
             yield document
 
 
+@final
 class FloatPattern(ScalarPattern[float]):
     def apply(self, document: Document) -> Iterable[float]:
         if isinstance(document, list):
@@ -77,6 +83,7 @@ class FloatPattern(ScalarPattern[float]):
             yield document
 
 
+@final
 class StrPattern(ScalarPattern[str]):
     def apply(self, document: Document) -> Iterable[str]:
         if isinstance(document, list):

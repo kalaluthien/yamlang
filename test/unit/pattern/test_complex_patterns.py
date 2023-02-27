@@ -44,6 +44,7 @@ def test_nested_list_pattern() -> None:
     assert match_success(List(List(Bool())), [[True], [False]])
     assert match_success(List(List(Bool())), [[], [True, False]])
     assert match_success(List(List(Bool())), [[True, True], [False], [True, False]])
+
     assert match_failure(List(List(Bool())), None)
     assert match_failure(List(List(Bool())), {})
     assert match_failure(List(List(Bool())), True)
@@ -115,6 +116,7 @@ def test_nested_dict_pattern() -> None:
         {"a": {"a": "A", "b": 1}, "b": {"a": "A", "b": 1}},
         {"a": {"b": 1}, "b": {"a": "A"}},
     )
+
     assert match_failure(
         Dict(a=Dict(b=Int()), b=Dict(a=Str())),
         ({"a": {"b": 1}, "b": {"a": 1}}, {"a": {"b": 1}, "b": {"a": None}}),
@@ -146,6 +148,7 @@ def test_nested_dict_pattern() -> None:
             {"a": {"b": 1, "c": "B"}, "d": False},
         ),
     )
+
     assert match_failure(
         Dict(a=Dict(b=Int(), c=Str()), d=Bool()),
         {"a": {"b": [], "c": ["A", "B"]}, "d": [True, False]},
@@ -231,6 +234,7 @@ def test_list_of_dict_pattern() -> None:
             [{"a": 1, "b": "B"}, {"a": 1, "b": "B"}],
         ),
     )
+
     assert match_failure(
         List(Dict(a=Int(), b=Str())),
         [{"a": 1, "b": "A"}, None],
@@ -336,6 +340,7 @@ def test_dict_of_list_pattern() -> None:
             {"a": [1, 4], "b": ["B", "C"]},
         ),
     )
+
     assert match_failure(
         Dict(a=List(Int()), b=List(Str())),
         {"a": ["A", "B"], "b": [1, 2]},
@@ -369,6 +374,7 @@ def test_list_or_pattern() -> None:
     assert match_success(List(Int() | Str()), [1, "B"])
     assert match_success(List(Int() | Str()), ["A", 2])
     assert match_success(List(Int() | Str()), [1, "A", 2, "B", "C", 3])
+
     assert match_failure(List(Int() | Str()), 1)
     assert match_failure(List(Int() | Str()), "A")
     assert match_failure(List(Int() | Str()), None)
@@ -388,6 +394,7 @@ def test_list_or_pattern() -> None:
     assert match_success(
         List(Int()) | List(Str()), [[1, "A"], [2, "B"]], ([1, 2], ["A", "B"])
     )
+
     assert match_failure(List(Int()) | List(Str()), [1, 2, "A", "B"])
     assert match_failure(List(Int()) | List(Str()), [[1, 2], ["A", "B"]])
 
@@ -423,6 +430,7 @@ def test_list_or_pattern() -> None:
             [2, 4, 6],
         ),
     )
+
     assert match_failure(Int() | List(Int()), "A")
     assert match_failure(Int() | List(Int()), None)
     assert match_failure(Int() | List(Int()), {})
@@ -450,6 +458,7 @@ def test_list_or_pattern() -> None:
             [[1, 2], [3, 4]],
         ),
     )
+
     assert match_failure(List(Int() | List(Int())), [None, 1, 2, 3, 4])
     assert match_failure(List(Int() | List(Int())), [[1, 2], [3, 4], None])
 
@@ -478,6 +487,7 @@ def test_dict_or_pattern() -> None:
             {"a": "B"},
         ),
     )
+
     assert match_failure(Dict(a=Int() | Str()), {"a": None})
     assert match_failure(Dict(a=Int() | Str()), {"a": False})
     assert match_failure(Dict(a=Int() | Str()), {"a": []})
@@ -507,6 +517,7 @@ def test_dict_or_pattern() -> None:
             {"a": 2, "b": "D"},
         ),
     )
+
     assert match_failure(
         Dict(a=Int() | Str(), b=Int()) | Dict(a=Int(), b=Str()),
         {"a": ["A", "B", "C"], "b": "D", "c": "E"},

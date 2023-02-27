@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from itertools import product
-from typing import Generic, Self, cast, overload
+from typing import Generic, Self, cast, final, overload
 
 from typing_extensions import TypeVar
 
@@ -12,6 +12,7 @@ from yamlang.yamltools.pattern.pattern import NeverPattern, Pattern
 _T1 = TypeVar("_T1", bound=Pattern, default=Pattern, infer_variance=True)
 
 
+@final
 class ListPattern(Pattern, Generic[_T1]):
     def __init__(self, pattern: _T1) -> None:
         self.__pattern = pattern
@@ -30,12 +31,30 @@ class ListPattern(Pattern, Generic[_T1]):
         ...
 
     def __getitem__(self, __key: int | str) -> _T1 | NeverPattern:
-        return cast(_T1, GetPattern[_T1](self, __key))
+        return cast(_T1, InPattern[_T1](self, __key))
+
+    def __repr__(self) -> str:
+        subrepr = repr(self.__pattern).split("\n")
+        subrepr = "\n".join("    " + line for line in subrepr)
+        return f"{type(self).__name__}:\n{subrepr}"
 
 
 class DictPattern(Pattern, Generic[_T1]):
+    __patterns: dict[str, Pattern] = {}
+
     def __init__(self, **patterns: _T1) -> None:
-        self.__patterns = dict(patterns)
+        if default_pattern := type(self).__patterns:
+            self.__patterns = dict(default_pattern)
+            for key, pattern in patterns.items():
+                if key in self.__patterns:
+                    self.__patterns[key] = pattern
+        else:
+            self.__patterns = dict(patterns)
+
+    def __init_subclass__(cls) -> None:
+        cls.__patterns = {
+            key: p for key, p in vars(cls).items() if isinstance(p, Pattern)
+        }
 
     def apply(self, document: Document) -> Iterable[dict[str, Document]]:
         if isinstance(document, list):
@@ -46,15 +65,8 @@ class DictPattern(Pattern, Generic[_T1]):
         if not isinstance(document, dict):
             return
 
-        if not all(key in document for key in self.__patterns):
-            return
-
         for values in product(
-            *(
-                pattern.apply(value)
-                for key, value in document.items()
-                if (pattern := self.__patterns.get(key))
-            )
+            *(p.apply(document.get(key)) for key, p in self.__patterns.items())
         ):
             yield dict(zip(self.__patterns.keys(), values))
 
@@ -67,10 +79,19 @@ class DictPattern(Pattern, Generic[_T1]):
         ...
 
     def __getitem__(self, __key: int | str) -> _T1 | NeverPattern:
-        return cast(_T1, GetPattern[_T1](self, __key))
+        return cast(_T1, InPattern[_T1](self, __key))
+
+    def __repr__(self) -> str:
+        subreprs: list[str] = []
+        for key, pattern in self.__patterns.items():
+            subrepr = repr(pattern).split("\n")
+            subrepr = "\n".join("    " + line for line in subrepr)
+            subreprs.append(f"[{key}]:\n{subrepr}")
+        return f"{type(self).__name__}:\n" + "\n".join("  " + line for line in subreprs)
 
 
-class GetPattern(Pattern, Generic[_T1]):
+@final
+class InPattern(Pattern, Generic[_T1]):
     def __init__(
         self,
         pattern: ListPattern[_T1] | DictPattern[_T1],
@@ -98,4 +119,10 @@ class GetPattern(Pattern, Generic[_T1]):
                 yield result
 
     def __getitem__(self, __key: int | str) -> Self:
-        return GetPattern(self.__pattern, *self.__keys, __key)
+        return InPattern(self.__pattern, *self.__keys, __key)
+
+    def __repr__(self) -> str:
+        subrepr = repr(self.__pattern).split("\n")
+        subrepr = "\n".join("    " + line for line in subrepr)
+        keyrepr = "][".join(str(key) for key in self.__keys)
+        return f"{type(self).__name__}[{keyrepr}]:\n{subrepr}"

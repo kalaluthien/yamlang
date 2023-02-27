@@ -38,6 +38,7 @@ def match_failure(p: Pattern, d: Document | tuple[Document, ...]) -> bool:
 def test_bool_pattern() -> None:
     assert match_success(Bool(), True)
     assert match_success(Bool(), False)
+
     assert match_failure(Bool(), None)
     assert match_failure(Bool(), 0)
     assert match_failure(Bool(), "")
@@ -51,6 +52,7 @@ def test_bool_pattern() -> None:
     )
 
     assert match_success(Bool(True), True)
+
     assert match_failure(Bool(True), None)
     assert match_failure(Bool(True), 1)
     assert match_failure(Bool(True), "True")
@@ -58,9 +60,11 @@ def test_bool_pattern() -> None:
 
     assert match_success(Bool(True), (True, True, True))
     assert match_success(Bool(True), (True, False, True), (True, True))
+
     assert match_failure(Bool(True), (False, None, 1))
 
     assert match_success(Bool(False), False)
+
     assert match_failure(Bool(False), None)
     assert match_failure(Bool(False), 0)
     assert match_failure(Bool(False), "False")
@@ -68,6 +72,7 @@ def test_bool_pattern() -> None:
 
     assert match_success(Bool(False), (False, False, False))
     assert match_success(Bool(False), (True, False, False), (False, False))
+
     assert match_failure(Bool(False), (True, None, 0))
 
 
@@ -75,14 +80,17 @@ def test_int_pattern() -> None:
     assert match_success(Int(), 0)
     assert match_success(Int(), 1)
     assert match_success(Int(), -1)
+
     assert match_failure(Int(), None)
     assert match_failure(Int(), False)
 
     assert match_success(Int(), (0, 1, -1))
     assert match_success(Int(), (0, 1, -1, None), (0, 1, -1))
+
     assert match_failure(Int(), (0.0, 1.0))
 
     assert match_success(Int(0), 0)
+
     assert match_failure(Int(0), None)
     assert match_failure(Int(0), "0")
     assert match_failure(Int(0), 1)
@@ -90,6 +98,7 @@ def test_int_pattern() -> None:
 
     assert match_success(Int(0), (0, 0, 0))
     assert match_success(Int(0), (0, 1, -1, 0), (0, 0))
+
     assert match_failure(Int(0), (1, -1, 0.0))
 
 
@@ -97,15 +106,18 @@ def test_float_pattern() -> None:
     assert match_success(Float(), 0.0)
     assert match_success(Float(), 1.0)
     assert match_success(Float(), -1.0)
+
     assert match_failure(Float(), None)
     assert match_failure(Float(), True)
     assert match_failure(Float(), "1.0")
 
     assert match_success(Float(), (0.0, 1.0, -1.0))
     assert match_success(Float(), (0.0, 1.0, -1.0, None), (0.0, 1.0, -1.0))
+
     assert match_failure(Float(), (None, True, "1.0"))
 
     assert match_success(Float(1.0), 1.0)
+
     assert match_failure(Float(1.0), None)
     assert match_failure(Float(1.0), 1)
     assert match_failure(Float(1.0), "1.0")
@@ -113,29 +125,35 @@ def test_float_pattern() -> None:
 
     assert match_success(Float(1.0), (1.0, 1.0, 1.0))
     assert match_success(Float(1.0), (0.0, 1.0, -1.0, 1.0), (1.0, 1.0))
+
     assert match_failure(Float(1.0), (0.0, -1.0))
 
 
 def test_str_pattern() -> None:
     assert match_success(Str(), "")
     assert match_success(Str(), "a")
+
     assert match_failure(Str(), None)
     assert match_failure(Str(), 0)
 
     assert match_success(Str(), ("", "a", "b"))
     assert match_success(Str(), ("a", "b", None), ("a", "b"))
+
     assert match_failure(Str(), (None, 0))
 
     assert match_success(Str(""), "")
+
     assert match_failure(Str(""), None)
     assert match_failure(Str(""), 0)
     assert match_failure(Str(""), "a")
 
     assert match_success(Str(""), ("", "", ""))
     assert match_success(Str(""), ("", "a", "", "b", ""), ("", "", ""))
+
     assert match_failure(Str(""), ("a", None))
 
     assert match_success(Str("a"), "a")
+
     assert match_failure(Str("a"), None)
     assert match_failure(Str("a"), 0)
     assert match_failure(Str("a"), "")
@@ -143,6 +161,7 @@ def test_str_pattern() -> None:
 
     assert match_success(Str("a"), ("a", "a", "a"))
     assert match_success(Str("a"), ("", "a", "b", "a", ""), ("a", "a"))
+
     assert match_failure(Str("a"), ("", "b", "b"))
 
 
@@ -150,6 +169,7 @@ def test_scalar_maybe_pattern() -> None:
     assert match_success(Bool() | None, True)
     assert match_success(Bool() | None, False)
     assert match_success(Bool() | None, None)
+
     assert match_success(Bool() | None, 0, None)
     assert match_success(Bool() | None, 1.0, None)
     assert match_success(Bool() | None, "", None)
@@ -164,6 +184,7 @@ def test_scalar_or_pattern() -> None:
     assert match_success(Int() | Str(), (1, 2, "A", "B"))
     assert match_success(Int() | Str(), ("A", 1), (1, "A"))
     assert match_success(Int() | Str(), (1, None, "A", False, 2), (1, 2, "A"))
+
     assert match_failure(Int() | Str(), None)
     assert match_failure(Int() | Str(), [])
     assert match_failure(Int() | Str(), {})
@@ -175,6 +196,7 @@ def test_scalar_or_pattern() -> None:
     assert match_success(Int(1) | Int(2) | Str(), "A")
     assert match_success(Int(1) | Int(2) | Str(), (1, 2, "A", "B"))
     assert match_success(Int(1) | Int(2) | Str(), ("A", 2, 1), (1, 2, "A"))
+
     assert match_failure(Int(1) | Int(2) | Str(), 3)
     assert match_failure(Int(1) | Int(2) | Str(), None)
     assert match_failure(Int(1) | Int(2) | Str(), [])
@@ -197,6 +219,7 @@ def test_list_pattern() -> None:
     assert match_success(List(Bool()), [False])
     assert match_success(List(Bool()), [True, False])
     assert match_success(List(Bool()), [[True], [False]], [True, False])
+
     assert match_failure(List(Bool()), None)
     assert match_failure(List(Bool()), {})
     assert match_failure(List(Bool()), True)
@@ -232,6 +255,7 @@ def test_list_pattern() -> None:
             [False, False, False],
         ),
     )
+
     assert match_failure(List(Bool()), [[True], [], [True, False]])
     assert match_failure(List(Bool()), [[True], [None], [True, False]])
 
@@ -245,6 +269,7 @@ def test_list_pattern() -> None:
         [True, False, [True, False]],
         ([True, False, True], [True, False, False]),
     )
+
     assert match_failure(List(Bool()), [[True], None, [True, False]])
     assert match_failure(List(Bool()), [[], False, [True, False]])
     assert match_failure(List(Bool()), [[]])
@@ -290,6 +315,7 @@ def test_list_pattern() -> None:
         [[True, "True"], [False, "False"], [True, "TrueFalse", False]],
         ([True, False, True], [True, False, False]),
     )
+
     assert match_failure(List(Bool()), [["True", "False"], [True, False]])
     assert match_failure(List(Bool()), ["True", [False], [True, "False"]])
 
@@ -297,6 +323,7 @@ def test_list_pattern() -> None:
 def test_dict_pattern() -> None:
     assert match_success(Dict(), {})
     assert match_success(Dict(), {"a": 1}, {})
+
     assert match_failure(Dict(), None)
     assert match_failure(Dict(), [])
 
@@ -306,6 +333,7 @@ def test_dict_pattern() -> None:
     assert match_success(Dict(a=Int(), b=Str()), {"a": 1, "b": "B"})
     assert match_success(Dict(a=Int(1), b=Str()), {"a": 1, "b": "B"})
     assert match_success(Dict(a=Int(), b=Str("B")), {"a": 1, "b": "B"})
+
     assert match_failure(Dict(a=Int(1)), {"a": 2})
     assert match_failure(Dict(a=Int()), {})
     assert match_failure(Dict(a=Int()), {"b": "B"})
@@ -346,6 +374,7 @@ def test_dict_pattern() -> None:
             {"a": 1, "b": "B", "c": False},
         ),
     )
+
     assert match_failure(
         Dict(a=Int(), b=Str(), c=Bool()),
         {"a": [], "b": ["A", "B", "C"], "c": [True, False]},
