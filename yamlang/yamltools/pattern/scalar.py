@@ -9,18 +9,7 @@ from typing_extensions import TypeVar
 from yamlang.yamltools import Document
 from yamlang.yamltools.pattern.pattern import NeverPattern, Pattern
 
-_T = TypeVar(
-    "_T",
-    None,
-    bool,
-    int,
-    float,
-    str,
-    datetime.date,
-    datetime.datetime,
-    default=None,
-    infer_variance=True,
-)
+_T = TypeVar("_T", None, bool, int, float, str, default=None, infer_variance=True)
 
 
 class ScalarPattern(Pattern, Generic[_T]):
