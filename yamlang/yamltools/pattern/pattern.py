@@ -58,6 +58,17 @@ class Pattern(ABC):
         self.name = __name
 
     @final
+    def __lshift__(self, __function: Callable[[Document], Document]) -> Self:
+        new = copy(self)
+        old_apply = self.apply
+
+        def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
+            yield from old_apply(__function(document))
+
+        new.apply = MethodType(new_apply, new)
+        return new
+
+    @final
     def __rshift__(self, __function: Callable[[Document], Document]) -> Self:
         new = copy(self)
         old_apply = self.apply
