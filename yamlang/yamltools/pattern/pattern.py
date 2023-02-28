@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
+from copy import copy
+from types import MethodType
 from typing import Any, Generic, Self, final, overload
 
 from typing_extensions import TypeVar
@@ -19,6 +21,10 @@ class Pattern(ABC):
 
     @abstractmethod
     def __getitem__(self, __key: int | str) -> Self:
+        raise NotImplementedError
+
+    @abstractmethod
+    def __copy__(self) -> Self:
         raise NotImplementedError
 
     @overload
@@ -51,6 +57,18 @@ class Pattern(ABC):
     def __set_name__(self, __owner: type[Pattern], __name: str) -> None:
         self.name = __name
 
+    @final
+    def __rshift__(self, __function: Callable[[Document], Document]) -> Self:
+        new = copy(self)
+        old_apply = self.apply
+
+        def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
+            for result in old_apply(document):
+                yield __function(result)
+
+        new.apply = MethodType(new_apply, new)
+        return new
+
 
 @final
 class NeverPattern(Pattern):
@@ -59,6 +77,9 @@ class NeverPattern(Pattern):
 
     def __getitem__(self, __key: int | str) -> Self:
         return self
+
+    def __copy__(self) -> Self:
+        return NeverPattern()
 
     def __repr__(self) -> str:
         return type(self).__name__
@@ -90,6 +111,9 @@ class MaybePattern(Pattern, Generic[_T1]):
             return MaybePattern(attr)
 
         return attr
+
+    def __copy__(self) -> Self:
+        return MaybePattern(self.__pattern)
 
     def __repr__(self) -> str:
         subrepr = repr(self.__pattern).split("\n")
@@ -125,6 +149,9 @@ class OrPattern(Pattern, Generic[_T1, _T2]):
 
         raise AttributeError(__name)
 
+    def __copy__(self) -> Self:
+        return OrPattern(self.__left_pattern, self.__right_pattern)
+
     def __repr__(self) -> str:
         left_repr = repr(self.__left_pattern).split("\n")
         right_repr = repr(self.__right_pattern).split("\n")
@@ -155,6 +182,9 @@ class ThenPattern(Pattern, Generic[_T1, _T2]):
             return ThenPattern(self.__left_pattern, attr)
 
         return attr
+
+    def __copy__(self) -> Self:
+        return ThenPattern(self.__left_pattern, self.__right_pattern)
 
     def __repr__(self) -> str:
         left_repr = repr(self.__left_pattern).split("\n")

@@ -33,6 +33,9 @@ class ListPattern(Pattern, Generic[_T1]):
     def __getitem__(self, __key: int | str) -> _T1 | NeverPattern:
         return cast(_T1, AtPattern[_T1](self, __key))
 
+    def __copy__(self) -> Self:
+        return ListPattern(self.__pattern)
+
     def __repr__(self) -> str:
         subrepr = repr(self.__pattern).split("\n")
         subrepr = "\n".join("    " + line for line in subrepr)
@@ -42,6 +45,7 @@ class ListPattern(Pattern, Generic[_T1]):
 class DictPattern(Pattern, Generic[_T1]):
     __patterns: dict[str, Pattern] = {}
 
+    @final
     def __init__(self, **patterns: _T1) -> None:
         if default_pattern := type(self).__patterns:
             self.__patterns = dict(default_pattern)
@@ -56,6 +60,7 @@ class DictPattern(Pattern, Generic[_T1]):
             key: p for key, p in vars(cls).items() if isinstance(p, Pattern)
         }
 
+    @final
     def apply(self, document: Document) -> Iterable[dict[str, Document]]:
         if isinstance(document, list):
             for item in document:
@@ -78,9 +83,15 @@ class DictPattern(Pattern, Generic[_T1]):
     def __getitem__(self, __key: int) -> NeverPattern:
         ...
 
+    @final
     def __getitem__(self, __key: int | str) -> _T1 | NeverPattern:
         return cast(_T1, AtPattern[_T1](self, __key))
 
+    @final
+    def __copy__(self) -> Self:
+        return type(self)(**self.__patterns)
+
+    @final
     def __repr__(self) -> str:
         subreprs: list[str] = []
         for key, pattern in self.__patterns.items():
@@ -120,6 +131,9 @@ class AtPattern(Pattern, Generic[_T1]):
 
     def __getitem__(self, __key: int | str) -> Self:
         return AtPattern(self.__pattern, *self.__keys, __key)
+
+    def __copy__(self) -> Self:
+        return AtPattern(self.__pattern, *self.__keys)
 
     def __repr__(self) -> str:
         subrepr = repr(self.__pattern).split("\n")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Iterable
-from typing import Generic, final
+from typing import Generic, Self, final
 
 from typing_extensions import TypeVar
 
@@ -13,6 +13,7 @@ _T = TypeVar("_T", None, bool, int, float, str, default=None, infer_variance=Tru
 
 
 class ScalarPattern(Pattern, Generic[_T]):
+    @final
     def __init__(self, value: _T | None = None) -> None:
         self._value = value
 
@@ -24,6 +25,11 @@ class ScalarPattern(Pattern, Generic[_T]):
     def __getitem__(self, __key: int | str) -> NeverPattern:
         return NeverPattern()
 
+    @final
+    def __copy__(self) -> Self:
+        return type(self)(self._value)
+
+    @final
     def __repr__(self) -> str:
         return f"{type(self).__name__}: {self._value!r}"
 

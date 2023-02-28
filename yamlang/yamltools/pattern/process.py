@@ -53,6 +53,9 @@ class ParsePattern(Pattern, Generic[_T1]):
 
         return attr
 
+    def __copy__(self) -> Self:
+        return ParsePattern(self.__pattern, self.__from_file)
+
     def __repr__(self) -> str:
         subrepr = repr(self.__pattern).split("\n")
         subrepr = "\n".join("    " + line for line in subrepr)
