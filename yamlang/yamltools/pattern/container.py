@@ -31,7 +31,7 @@ class ListPattern(Pattern, Generic[_T1]):
         ...
 
     def __getitem__(self, __key: int | str) -> _T1 | NeverPattern:
-        return cast(_T1, InPattern[_T1](self, __key))
+        return cast(_T1, AtPattern[_T1](self, __key))
 
     def __repr__(self) -> str:
         subrepr = repr(self.__pattern).split("\n")
@@ -79,7 +79,7 @@ class DictPattern(Pattern, Generic[_T1]):
         ...
 
     def __getitem__(self, __key: int | str) -> _T1 | NeverPattern:
-        return cast(_T1, InPattern[_T1](self, __key))
+        return cast(_T1, AtPattern[_T1](self, __key))
 
     def __repr__(self) -> str:
         subreprs: list[str] = []
@@ -91,7 +91,7 @@ class DictPattern(Pattern, Generic[_T1]):
 
 
 @final
-class InPattern(Pattern, Generic[_T1]):
+class AtPattern(Pattern, Generic[_T1]):
     def __init__(
         self,
         pattern: ListPattern[_T1] | DictPattern[_T1],
@@ -119,7 +119,7 @@ class InPattern(Pattern, Generic[_T1]):
                 yield result
 
     def __getitem__(self, __key: int | str) -> Self:
-        return InPattern(self.__pattern, *self.__keys, __key)
+        return AtPattern(self.__pattern, *self.__keys, __key)
 
     def __repr__(self) -> str:
         subrepr = repr(self.__pattern).split("\n")

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+from abc import abstractmethod
 from collections.abc import Iterable
 from typing import Generic, final
 
@@ -15,6 +15,10 @@ _T = TypeVar("_T", None, bool, int, float, str, default=None, infer_variance=Tru
 class ScalarPattern(Pattern, Generic[_T]):
     def __init__(self, value: _T | None = None) -> None:
         self._value = value
+
+    @abstractmethod
+    def apply(self, document: Document) -> Iterable[_T]:
+        raise NotImplementedError
 
     @final
     def __getitem__(self, __key: int | str) -> NeverPattern:

@@ -94,7 +94,7 @@ class MaybePattern(Pattern, Generic[_T1]):
     def __repr__(self) -> str:
         subrepr = repr(self.__pattern).split("\n")
         subrepr = "\n".join("    " + line for line in subrepr)
-        return f"{type(self).__name__}(?):\n{subrepr}"
+        return f"{type(self).__name__}:\n{subrepr}"
 
 
 @final
@@ -132,7 +132,7 @@ class OrPattern(Pattern, Generic[_T1, _T2]):
         left_repr = "\n".join("    " + line for line in left_repr)
         right_repr = "\n".join("    " + line for line in right_repr)
 
-        return f"{type(self).__name__}(|):\n{left_repr}\n{right_repr}"
+        return f"{type(self).__name__}:\n{left_repr}\n{right_repr}"
 
 
 @final
@@ -163,4 +163,4 @@ class ThenPattern(Pattern, Generic[_T1, _T2]):
         left_repr = "\n".join("    " + line for line in left_repr)
         right_repr = "\n".join("    " + line for line in right_repr)
 
-        return f"{type(self).__name__}(>>):\n{left_repr}\n{right_repr}"
+        return f"{type(self).__name__}:\n{left_repr}\n{right_repr}"
