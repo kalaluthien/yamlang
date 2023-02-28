@@ -1,5 +1,3 @@
-from re import M
-
 from yamlang.yamltools import BoolPattern as Bool
 from yamlang.yamltools import DictPattern as Dict
 from yamlang.yamltools import Document
