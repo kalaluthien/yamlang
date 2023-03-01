@@ -33,6 +33,5 @@ pytest test/unit
 ```bash
 pip install jupyter
 pip install black
-pip install isort
 pip install pre-commit
 ```
