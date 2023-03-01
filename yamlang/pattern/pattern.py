@@ -127,15 +127,15 @@ class Pattern(ABC):
     @final
     @staticmethod
     def lift(
-        old_apply: Callable[[_T1, Document], Iterable[_T2]],
+        apply: Callable[[_T1, Document], Iterable[_T2]],
     ) -> Callable[[_T1, Document], Iterable[_T2]]:
-        @wraps(old_apply)
+        @wraps(apply)
         def new_apply(self: _T1, document: Document) -> Iterable[_T2]:
             if isinstance(document, list):
                 for item in document:
-                    yield from old_apply(self, item)
+                    yield from apply(self, item)
                 return
 
-            yield from old_apply(self, document)
+            yield from apply(self, document)
 
         return new_apply
