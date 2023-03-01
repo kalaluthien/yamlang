@@ -60,6 +60,9 @@ class Pattern(ABC):
     @final
     def __lshift__(self, __function: Callable[[Document], Document]) -> Self:
         new = copy(self)
+        if hasattr(self, "name"):
+            setattr(new, "name", self.name)
+
         old_apply = self.apply
 
         def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
@@ -71,6 +74,9 @@ class Pattern(ABC):
     @final
     def __rshift__(self, __function: Callable[[Document], Document]) -> Self:
         new = copy(self)
+        if hasattr(self, "name"):
+            setattr(new, "name", self.name)
+
         old_apply = self.apply
 
         def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
