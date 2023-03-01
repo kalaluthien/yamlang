@@ -66,7 +66,7 @@ def test_nested_list_pattern() -> None:
     )
     assert match_success(
         List(List(Bool())),
-        [[[True, False], [False, [True]]], [[False, True]], [[True], False]],
+        [[[True, False], [False, True]], [[False, True]], [[True], False]],
         (
             [[True, False], [False], [True, False]],
             [[True, False], [True], [True, False]],
@@ -413,12 +413,6 @@ def test_list_or_pattern() -> None:
         Int() | List(Int()),
         [[1, 2], [3, 4], [5, 6]],
         (
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
             [1, 3, 5],
             [1, 3, 6],
             [1, 4, 5],

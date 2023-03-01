@@ -6,7 +6,7 @@ from typing import Any, Generic, Self, cast, final
 
 from typing_extensions import TypeVar
 
-from yamlang.pattern.pattern import Pattern, lift
+from yamlang.pattern.pattern import Pattern
 from yamlang.yamltools import Document, load
 
 _T1 = TypeVar("_T1", bound=Pattern, default=Pattern, infer_variance=True)
@@ -26,7 +26,7 @@ class ParsePattern(Pattern, Generic[_T1]):
     def from_text(cls, pattern: _T1) -> _T1:
         return cast(_T1, cls(pattern, from_file=False))
 
-    @lift
+    @Pattern.lift
     def apply(self, document: Document) -> Iterable[Document]:
         if not isinstance(document, str):
             return

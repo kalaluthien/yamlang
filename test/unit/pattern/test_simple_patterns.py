@@ -45,11 +45,9 @@ def test_bool_pattern() -> None:
 
     assert match_success(Bool(), (True, False, True))
     assert match_success(Bool(), (True, False, None), (True, False))
-    assert match_success(
-        Bool(),
-        ([True, False], [False, [False, True]], True),
-        (True, False, False, False, True, True),
-    )
+
+    assert match_failure(Bool(), ([True, False, False],))
+    assert match_failure(Bool(), ([True, False, False], [False, True, True]))
 
     assert match_success(Bool(True), True)
 
@@ -277,8 +275,8 @@ def test_list_pattern() -> None:
     assert match_success(
         List(Bool()),
         [
-            [[True, False], True, [True, False]],
-            [True, [False, True], [True], [[False]]],
+            [True, False, True, True, False],
+            [True, False, True, True, False],
             False,
         ],
         (

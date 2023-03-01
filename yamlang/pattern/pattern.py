@@ -34,20 +34,26 @@ class Pattern(ABC):
         ...
 
     @overload
-    def __or__(self, __pattern: NeverPattern) -> Self:
-        ...
-
-    @overload
     def __or__(self, __pattern: _T1) -> Self | _T1:
         ...
 
     @final
     def __or__(self, __pattern: _T1 | None) -> Self | _T1:
         if __pattern is None:
-            return MaybePattern(self)
+            old_apply = self.apply
 
-        if isinstance(__pattern, NeverPattern):
-            return self
+            def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
+                results = iter(old_apply(document))
+
+                try:
+                    yield next(results)
+                except StopIteration:
+                    yield None
+                    return
+
+                yield from results
+
+            return self.updated(new_apply)
 
         return OrPattern(self, __pattern)
 
@@ -61,32 +67,49 @@ class Pattern(ABC):
 
     @final
     def __lshift__(self, __function: Callable[[Document], Document]) -> Self:
-        new = copy(self)
-        if hasattr(self, "name"):
-            setattr(new, "name", self.name)
-
         old_apply = self.apply
 
         def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
             yield from old_apply(__function(document))
 
-        new.apply = MethodType(new_apply, new)
-        return new
+        return self.updated(new_apply)
 
     @final
     def __rshift__(self, __function: Callable[[Document], Document]) -> Self:
-        new = copy(self)
-        if hasattr(self, "name"):
-            setattr(new, "name", self.name)
-
         old_apply = self.apply
 
         def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
             for result in old_apply(document):
                 yield __function(result)
 
+        return self.updated(new_apply)
+
+    @final
+    def updated(
+        self,
+        new_apply: Callable[[Self, Document], Iterable[Document]],
+    ) -> Self:
+        new = copy(self)
+        if hasattr(self, "name"):
+            setattr(new, "name", getattr(self, "name"))
         new.apply = MethodType(new_apply, new)
         return new
+
+    @final
+    @staticmethod
+    def lift(
+        old_apply: Callable[[_T1, Document], Iterable[_T3]],
+    ) -> Callable[[_T1, Document], Iterable[_T3]]:
+        @wraps(old_apply)
+        def new_apply(self: _T1, document: Document) -> Iterable[_T3]:
+            if isinstance(document, list):
+                for item in document:
+                    yield from old_apply(self, item)
+                return
+
+            yield from old_apply(self, document)
+
+        return new_apply
 
 
 @final
@@ -102,42 +125,6 @@ class NeverPattern(Pattern):
 
     def __repr__(self) -> str:
         return type(self).__name__
-
-
-@final
-class MaybePattern(Pattern, Generic[_T1]):
-    def __init__(self, pattern: _T1) -> None:
-        self.__pattern = pattern
-
-    def apply(self, document: Document) -> Iterable[Document]:
-        results = iter(self.__pattern.apply(document))
-
-        try:
-            yield next(results)
-        except StopIteration:
-            yield None
-            return
-
-        yield from results
-
-    def __getitem__(self, __key: int | str) -> Self:
-        return MaybePattern(self.__pattern[__key])
-
-    def __getattr__(self, __name: str) -> Any:
-        attr = getattr(self.__pattern, __name)
-
-        if isinstance(attr, Pattern):
-            return MaybePattern(attr)
-
-        return attr
-
-    def __copy__(self) -> Self:
-        return MaybePattern(self.__pattern)
-
-    def __repr__(self) -> str:
-        subrepr = repr(self.__pattern).split("\n")
-        subrepr = "\n".join("    " + line for line in subrepr)
-        return f"{type(self).__name__}:\n{subrepr}"
 
 
 @final
@@ -213,18 +200,3 @@ class ThenPattern(Pattern, Generic[_T1, _T2]):
         right_repr = "\n".join("    " + line for line in right_repr)
 
         return f"{type(self).__name__}:\n{left_repr}\n{right_repr}"
-
-
-def lift(
-    apply: Callable[[_T1, Document], Iterable[_T3]],
-) -> Callable[[_T1, Document], Iterable[_T3]]:
-    @wraps(apply)
-    def new_apply(self: _T1, document: Document) -> Iterable[_T3]:
-        if isinstance(document, list):
-            for item in document:
-                yield from apply(self, item)
-            return
-
-        yield from apply(self, document)
-
-    return new_apply
