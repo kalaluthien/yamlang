@@ -6,8 +6,8 @@ from typing import Generic, Self, cast, final, overload
 
 from typing_extensions import TypeVar
 
+from yamlang.pattern.pattern import NeverPattern, Pattern
 from yamlang.yamltools import Document
-from yamlang.yamltools.pattern.pattern import NeverPattern, Pattern
 
 _T1 = TypeVar("_T1", bound=Pattern, default=Pattern, infer_variance=True)
 

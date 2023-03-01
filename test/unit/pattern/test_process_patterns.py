@@ -1,12 +1,12 @@
-from yamlang.yamltools import BoolPattern as Bool
-from yamlang.yamltools import DictPattern as Dict
+from yamlang.pattern import BoolPattern as Bool
+from yamlang.pattern import DictPattern as Dict
+from yamlang.pattern import FloatPattern as Float
+from yamlang.pattern import IntPattern as Int
+from yamlang.pattern import ListPattern as List
+from yamlang.pattern import ParsePattern as Parse
+from yamlang.pattern import Pattern
+from yamlang.pattern import StrPattern as Str
 from yamlang.yamltools import Document
-from yamlang.yamltools import FloatPattern as Float
-from yamlang.yamltools import IntPattern as Int
-from yamlang.yamltools import ListPattern as List
-from yamlang.yamltools import ParsePattern as Parse
-from yamlang.yamltools import Pattern
-from yamlang.yamltools import StrPattern as Str
 
 SENTINEL_LITERAL_STR = "__SENTINEL_LITERAL_STR__"
 
