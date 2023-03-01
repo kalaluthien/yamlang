@@ -6,7 +6,9 @@ from typing import overload
 import yaml
 from typing_extensions import TypeVar
 
-Document = None | bool | int | float | str | list["Document"] | dict[str, "Document"]
+Document = (
+    None | bool | int | float | str | list["Document"] | dict[str, "Document"]
+)
 
 
 def custom_null_constructor(loader: yaml.Loader, node: yaml.Node) -> Document:
@@ -41,25 +43,30 @@ def patch_yaml_loader(
         yaml.add_constructor("tag:yaml.org,2002:bool", custom_bool_constructor)
 
     if patch_date:
-        yaml.add_constructor("tag:yaml.org,2002:timestamp", custom_date_constructor)
+        yaml.add_constructor(
+            "tag:yaml.org,2002:timestamp",
+            custom_date_constructor,
+        )
 
 
-def load(text: str | None = None, *, path: str | Path | None = None) -> Document:
-    if path is not None:
-        if text is not None:
-            raise ValueError("Only one of path or text must be specified.")
+def load_from_file(document: Document) -> Document:
+    if isinstance(document, list):
+        return [load_from_file(item) for item in document]
 
-        if not (path := Path(path)).exists():
-            raise FileNotFoundError(f"File not found: {path}")
+    path = Path(str(document))
 
-        if not path.is_file():
-            raise ValueError(f"Not a file: {path}")
+    if path.exists() or not path.is_file():
+        return
 
-        with path.open() as file:
-            text = file.read()
+    with path.open() as file:
+        return yaml.load(file.read(), Loader=yaml.FullLoader)
 
-    if text is None:
-        raise ValueError("Either path or text must be specified.")
+
+def load_from_text(document: Document) -> Document:
+    if isinstance(document, list):
+        return [load_from_text(item) for item in document]
+
+    text = str(document)
 
     return yaml.load(text, Loader=yaml.FullLoader)
 

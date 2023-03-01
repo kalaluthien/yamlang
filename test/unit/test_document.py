@@ -1,15 +1,19 @@
-import datetime
-
-from yamlang.yamltools import Document, FoldMap, Map, load, patch_yaml_loader
+from yamlang.yamltools import Document
+from yamlang.yamltools import FoldMap
+from yamlang.yamltools import Map
+from yamlang.yamltools import load_from_text
+from yamlang.yamltools import patch_yaml_loader
 
 
 def test_load_yaml() -> None:
     patch_yaml_loader()
 
-    document = load(r"{foo: {bar: baz, qux: [12, 34]}}")
+    document = load_from_text(r"{foo: {bar: baz, qux: [12, 34]}}")
     assert document == {"foo": {"bar": "baz", "qux": [12, 34]}}
 
-    document = load(r"{foo: null, bar: yes, baz: off, on: true, no: FALSE, ? else}")
+    document = load_from_text(
+        r"{foo: null, bar: yes, baz: off, on: true, no: FALSE, ? else}",
+    )
     assert document == {
         "foo": "null",
         "bar": "yes",
@@ -19,13 +23,15 @@ def test_load_yaml() -> None:
         "else": None,
     }
 
-    document = load(r"{foo: &A {bar: 2.0, baz: 3.0}, qux: *A}")
+    document = load_from_text(r"{foo: &A {bar: 2.0, baz: 3.0}, qux: *A}")
     assert document == {
         "foo": {"bar": 2.0, "baz": 3.0},
         "qux": {"bar": 2.0, "baz": 3.0},
     }
 
-    document = load(r"{foo: [2023-01-01], bar: [2023-01-01 12:34:56]}")
+    document = load_from_text(
+        r"{foo: [2023-01-01], bar: [2023-01-01 12:34:56]}",
+    )
     assert document == {
         "foo": ["2023-01-01"],
         "bar": ["2023-01-01 12:34:56"],
@@ -70,7 +76,10 @@ def test_map_uppercase() -> None:
     assert map(document) == {"foo": ["BAR", "BAZ"], "qux": "HAM"}
 
     document = {"foo": {"bar": "ham", "baz": "spam"}, "eggs": "qux"}
-    assert map(document) == {"foo": {"bar": "HAM", "baz": "SPAM"}, "eggs": "QUX"}
+    assert map(document) == {
+        "foo": {"bar": "HAM", "baz": "SPAM"},
+        "eggs": "QUX",
+    }
 
 
 def test_fold_map_skip_null() -> None:
@@ -86,7 +95,7 @@ def test_fold_map_skip_null() -> None:
     )
 
     document: Document = None
-    assert fold_map(document) == None
+    assert fold_map(document) is None
 
     document = [1, None, 2, None, 3]
     assert fold_map(document) == [1, 2, 3]
@@ -113,12 +122,6 @@ def test_fold_map_format() -> None:
 
     def format_str(x: str) -> str:
         return f"Str({x})"
-
-    def format_date(x: datetime.date) -> str:
-        return f"Date({x.year}-{x.month}-{x.day})"
-
-    def format_datetime(x: datetime.datetime) -> str:
-        return f"DateTime({x.year}-{x.month}-{x.day} {x.hour}:{x.minute}:{x.second})"
 
     def format_list(xs: list[str]) -> str:
         return f"List({', '.join(xs)})"

@@ -1,5 +1,6 @@
 ![Badge](https://github.com/kalaluthien/yamlang/actions/workflows/unit_test.yaml/badge.svg)
 ![Badge](https://img.shields.io/badge/python-3.11-blue.svg)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # YamLang
 A language in `YAML` to transform data in `YAML`, inspired by:
