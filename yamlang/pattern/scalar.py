@@ -2,14 +2,25 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Iterable
-from typing import Generic, Self, final
+from typing import Generic
+from typing import Self
+from typing import final
 
 from typing_extensions import TypeVar
 
 from yamlang.pattern.pattern import Pattern
 from yamlang.yamltools import Document
 
-_T = TypeVar("_T", None, bool, int, float, str, default=None, infer_variance=True)
+_T = TypeVar(
+    "_T",
+    None,
+    bool,
+    int,
+    float,
+    str,
+    default=None,
+    infer_variance=True,
+)
 
 
 class ScalarPattern(Pattern, Generic[_T]):

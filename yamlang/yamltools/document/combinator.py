@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Generic, overload
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Generic
+from typing import overload
 
 from typing_extensions import TypeVar
 
@@ -169,8 +172,12 @@ class FoldMap(_FoldMap[_T]):
 
         if isinstance(document, dict):
             if self.on_dict:
-                return self.on_dict({k: self.apply(v) for k, v in document.items()})
+                return self.on_dict(
+                    {k: self.apply(v) for k, v in document.items()},
+                )
             else:
-                return self.default({k: self.apply(v) for k, v in document.items()})
+                return self.default(
+                    {k: self.apply(v) for k, v in document.items()},
+                )
 
         return self.default(document)

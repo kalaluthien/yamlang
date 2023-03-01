@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from itertools import product
-from typing import Generic, Self, final, overload
+from typing import Generic
+from typing import Self
+from typing import final
+from typing import overload
 
 from typing_extensions import TypeVar
 
@@ -19,7 +22,9 @@ class ListPattern(Pattern, Generic[_T]):
 
     def apply(self, document: Document) -> Iterable[list[Document]]:
         if isinstance(document, list):
-            for items in product(*(self.__pattern.apply(item) for item in document)):
+            for items in product(
+                *(self.__pattern.apply(item) for item in document)
+            ):
                 yield list(items)
 
     @overload
@@ -94,4 +99,6 @@ class DictPattern(Pattern, Generic[_T]):
             subrepr = repr(pattern).split("\n")
             subrepr = "\n".join("    " + line for line in subrepr)
             subreprs.append(f"[{key}]:\n{subrepr}")
-        return f"{type(self).__name__}:\n" + "\n".join("  " + line for line in subreprs)
+        return f"{type(self).__name__}:\n" + "\n".join(
+            "  " + line for line in subreprs
+        )
