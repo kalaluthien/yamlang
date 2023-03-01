@@ -53,7 +53,7 @@ class Pattern(ABC):
 
                 yield from results
 
-            return self.updated(new_apply)
+            return self._updated(new_apply)
 
         return OrPattern(self, __pattern)
 
@@ -72,7 +72,7 @@ class Pattern(ABC):
         def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
             yield from old_apply(__function(document))
 
-        return self.updated(new_apply)
+        return self._updated(new_apply)
 
     @final
     def __rshift__(self, __function: Callable[[Document], Document]) -> Self:
@@ -82,10 +82,10 @@ class Pattern(ABC):
             for result in old_apply(document):
                 yield __function(result)
 
-        return self.updated(new_apply)
+        return self._updated(new_apply)
 
     @final
-    def updated(
+    def _updated(
         self,
         new_apply: Callable[[Self, Document], Iterable[Document]],
     ) -> Self:
