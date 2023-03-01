@@ -9,22 +9,22 @@ from typing_extensions import TypeVar
 from yamlang.pattern.pattern import Pattern
 from yamlang.yamltools import Document, load
 
-_T1 = TypeVar("_T1", bound=Pattern, default=Pattern, infer_variance=True)
+_T = TypeVar("_T", bound=Pattern, default=Pattern, infer_variance=True)
 
 
 @final
-class ParsePattern(Pattern, Generic[_T1]):
-    def __init__(self, pattern: _T1, from_file: bool) -> None:
+class ParsePattern(Pattern, Generic[_T]):
+    def __init__(self, pattern: _T, from_file: bool) -> None:
         self.__pattern = pattern
         self.__from_file = from_file
 
     @classmethod
-    def from_file(cls, pattern: _T1) -> _T1:
-        return cast(_T1, cls(pattern, from_file=True))
+    def from_file(cls, pattern: _T) -> _T:
+        return cast(_T, cls(pattern, from_file=True))
 
     @classmethod
-    def from_text(cls, pattern: _T1) -> _T1:
-        return cast(_T1, cls(pattern, from_file=False))
+    def from_text(cls, pattern: _T) -> _T:
+        return cast(_T, cls(pattern, from_file=False))
 
     @Pattern.lift
     def apply(self, document: Document) -> Iterable[Document]:

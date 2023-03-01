@@ -9,12 +9,12 @@ from typing_extensions import TypeVar
 from yamlang.pattern.pattern import NeverPattern, Pattern
 from yamlang.yamltools import Document
 
-_T1 = TypeVar("_T1", bound=Pattern, default=Pattern, infer_variance=True)
+_T = TypeVar("_T", bound=Pattern, default=Pattern, infer_variance=True)
 
 
 @final
-class ListPattern(Pattern, Generic[_T1]):
-    def __init__(self, pattern: _T1) -> None:
+class ListPattern(Pattern, Generic[_T]):
+    def __init__(self, pattern: _T) -> None:
         self.__pattern = pattern
 
     def apply(self, document: Document) -> Iterable[list[Document]]:
@@ -23,15 +23,15 @@ class ListPattern(Pattern, Generic[_T1]):
                 yield list(items)
 
     @overload
-    def __getitem__(self, __key: int) -> _T1:
+    def __getitem__(self, __key: int) -> _T:
         ...
 
     @overload
     def __getitem__(self, __key: str) -> NeverPattern:
         ...
 
-    def __getitem__(self, __key: int | str) -> _T1 | NeverPattern:
-        return cast(_T1, AtPattern[_T1](self, __key))
+    def __getitem__(self, __key: int | str) -> _T | NeverPattern:
+        return cast(_T, AtPattern[_T](self, __key))
 
     def __copy__(self) -> Self:
         return ListPattern(self.__pattern)
@@ -42,11 +42,11 @@ class ListPattern(Pattern, Generic[_T1]):
         return f"{type(self).__name__}:\n{subrepr}"
 
 
-class DictPattern(Pattern, Generic[_T1]):
+class DictPattern(Pattern, Generic[_T]):
     __patterns: dict[str, Pattern] = {}
 
     @final
-    def __init__(self, **patterns: _T1) -> None:
+    def __init__(self, **patterns: _T) -> None:
         if default_pattern := type(self).__patterns:
             self.__patterns = dict(default_pattern)
             for key, pattern in patterns.items():
@@ -72,7 +72,7 @@ class DictPattern(Pattern, Generic[_T1]):
             yield dict(zip(self.__patterns.keys(), values))
 
     @overload
-    def __getitem__(self, __key: str) -> _T1:
+    def __getitem__(self, __key: str) -> _T:
         ...
 
     @overload
@@ -80,8 +80,8 @@ class DictPattern(Pattern, Generic[_T1]):
         ...
 
     @final
-    def __getitem__(self, __key: int | str) -> _T1 | NeverPattern:
-        return cast(_T1, AtPattern[_T1](self, __key))
+    def __getitem__(self, __key: int | str) -> _T | NeverPattern:
+        return cast(_T, AtPattern[_T](self, __key))
 
     @final
     def __copy__(self) -> Self:
@@ -98,10 +98,10 @@ class DictPattern(Pattern, Generic[_T1]):
 
 
 @final
-class AtPattern(Pattern, Generic[_T1]):
+class AtPattern(Pattern, Generic[_T]):
     def __init__(
         self,
-        pattern: ListPattern[_T1] | DictPattern[_T1],
+        pattern: ListPattern[_T] | DictPattern[_T],
         *key: int | str,
     ) -> None:
         self.__pattern = pattern
