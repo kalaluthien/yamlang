@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from itertools import product
-from typing import Generic, Self, cast, final, overload
+from typing import Generic, Self, final, overload
 
 from typing_extensions import TypeVar
 
-from yamlang.pattern.pattern import NeverPattern, Pattern
+from yamlang.pattern.pattern import Pattern
 from yamlang.yamltools import Document
 
 _T = TypeVar("_T", bound=Pattern, default=Pattern, infer_variance=True)
@@ -27,11 +27,11 @@ class ListPattern(Pattern, Generic[_T]):
         ...
 
     @overload
-    def __getitem__(self, __key: str) -> NeverPattern:
+    def __getitem__(self, __key: str) -> Pattern:
         ...
 
-    def __getitem__(self, __key: int | str) -> _T | NeverPattern:
-        return cast(_T, AtPattern[_T](self, __key))
+    def __getitem__(self, __key: int | str) -> Pattern:
+        return super().__getitem__(__key)
 
     def __copy__(self) -> Self:
         return ListPattern(self.__pattern)
@@ -72,16 +72,16 @@ class DictPattern(Pattern, Generic[_T]):
             yield dict(zip(self.__patterns.keys(), values))
 
     @overload
-    def __getitem__(self, __key: str) -> _T:
+    def __getitem__(self, __key: int) -> Pattern:
         ...
 
     @overload
-    def __getitem__(self, __key: int) -> NeverPattern:
+    def __getitem__(self, __key: str) -> _T:
         ...
 
     @final
-    def __getitem__(self, __key: int | str) -> _T | NeverPattern:
-        return cast(_T, AtPattern[_T](self, __key))
+    def __getitem__(self, __key: int | str) -> Pattern:
+        return super().__getitem__(__key)
 
     @final
     def __copy__(self) -> Self:
@@ -95,44 +95,3 @@ class DictPattern(Pattern, Generic[_T]):
             subrepr = "\n".join("    " + line for line in subrepr)
             subreprs.append(f"[{key}]:\n{subrepr}")
         return f"{type(self).__name__}:\n" + "\n".join("  " + line for line in subreprs)
-
-
-@final
-class AtPattern(Pattern, Generic[_T]):
-    def __init__(
-        self,
-        pattern: ListPattern[_T] | DictPattern[_T],
-        *key: int | str,
-    ) -> None:
-        self.__pattern = pattern
-        self.__keys = key
-
-    def apply(self, document: Document) -> Iterable[Document]:
-        for result in self.__pattern.apply(document):
-            for key in self.__keys:
-                if isinstance(key, int):
-                    if isinstance(result, list) and (-len(result) <= key < len(result)):
-                        result = result[key]
-                    else:
-                        break
-                elif isinstance(key, str):
-                    if isinstance(result, dict) and key in result:
-                        result = result[key]
-                    else:
-                        break
-                else:
-                    return
-            else:
-                yield result
-
-    def __getitem__(self, __key: int | str) -> Self:
-        return AtPattern(self.__pattern, *self.__keys, __key)
-
-    def __copy__(self) -> Self:
-        return AtPattern(self.__pattern, *self.__keys)
-
-    def __repr__(self) -> str:
-        subrepr = repr(self.__pattern).split("\n")
-        subrepr = "\n".join("    " + line for line in subrepr)
-        keyrepr = "][".join(str(key) for key in self.__keys)
-        return f"{type(self).__name__}[{keyrepr}]:\n{subrepr}"

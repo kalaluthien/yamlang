@@ -5,15 +5,14 @@ from collections.abc import Callable, Iterable
 from copy import copy
 from functools import wraps
 from types import MethodType
-from typing import Any, Generic, Self, final, overload
+from typing import Self, final, overload
 
 from typing_extensions import TypeVar
 
 from yamlang.yamltools import Document
 
 _T1 = TypeVar("_T1", bound="Pattern", default="Pattern", infer_variance=True)
-_T2 = TypeVar("_T2", bound="Pattern", default="Pattern", infer_variance=True)
-_T3 = TypeVar("_T3", bound=Document, default=Document, infer_variance=True)
+_T2 = TypeVar("_T2", bound=Document, default=Document, infer_variance=True)
 
 
 class Pattern(ABC):
@@ -21,9 +20,20 @@ class Pattern(ABC):
     def apply(self, document: Document) -> Iterable[Document]:
         raise NotImplementedError
 
-    @abstractmethod
-    def __getitem__(self, __key: int | str) -> Self:
-        raise NotImplementedError
+    def __getitem__(self, __key: int | str) -> Pattern:
+        def new_apply(_: Pattern, document: Document) -> Iterable[Document]:
+            if isinstance(__key, int):
+                for result in self.apply(document):
+                    if isinstance(result, list):
+                        if -len(result) <= __key < len(result):
+                            yield result[__key]
+            else:
+                for result in self.apply(document):
+                    if isinstance(result, dict):
+                        if __key in result:
+                            yield result[__key]
+
+        return self._updated(new_apply)
 
     @abstractmethod
     def __copy__(self) -> Self:
@@ -40,10 +50,9 @@ class Pattern(ABC):
     @final
     def __or__(self, __pattern: _T1 | None) -> Self | _T1:
         if __pattern is None:
-            old_apply = self.apply
 
-            def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
-                results = iter(old_apply(document))
+            def new_apply(_: Pattern, document: Document) -> Iterable[Document]:
+                results = iter(self.apply(document))
 
                 try:
                     yield next(results)
@@ -53,13 +62,23 @@ class Pattern(ABC):
 
                 yield from results
 
-            return self._updated(new_apply)
+        else:
 
-        return OrPattern(self, __pattern)
+            def new_apply(_: Pattern, document: Document) -> Iterable[Document]:
+                yield from self.apply(document)
+                yield from __pattern.apply(document)
+
+        return self._updated(new_apply)
 
     @final
     def __get__(self, __instance: Pattern, __owner: type[Pattern]) -> Self:
-        return ThenPattern(__instance[self.name], self)
+        parent = __instance[getattr(self, "name")]
+
+        def new_apply(_: Pattern, document: Document) -> Iterable[Document]:
+            for result in parent.apply(document):
+                yield from self.apply(result)
+
+        return self._updated(new_apply)
 
     @final
     def __set_name__(self, __owner: type[Pattern], __name: str) -> None:
@@ -67,19 +86,15 @@ class Pattern(ABC):
 
     @final
     def __lshift__(self, __function: Callable[[Document], Document]) -> Self:
-        old_apply = self.apply
-
-        def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
-            yield from old_apply(__function(document))
+        def new_apply(_: Pattern, document: Document) -> Iterable[Document]:
+            yield from self.apply(__function(document))
 
         return self._updated(new_apply)
 
     @final
     def __rshift__(self, __function: Callable[[Document], Document]) -> Self:
-        old_apply = self.apply
-
-        def new_apply(self: Pattern, document: Document) -> Iterable[Document]:
-            for result in old_apply(document):
+        def new_apply(_: Pattern, document: Document) -> Iterable[Document]:
+            for result in self.apply(document):
                 yield __function(result)
 
         return self._updated(new_apply)
@@ -90,18 +105,18 @@ class Pattern(ABC):
         new_apply: Callable[[Self, Document], Iterable[Document]],
     ) -> Self:
         new = copy(self)
-        if hasattr(self, "name"):
-            setattr(new, "name", getattr(self, "name"))
+        if "name" in self.__dict__:
+            new.name = self.name
         new.apply = MethodType(new_apply, new)
         return new
 
     @final
     @staticmethod
     def lift(
-        old_apply: Callable[[_T1, Document], Iterable[_T3]],
-    ) -> Callable[[_T1, Document], Iterable[_T3]]:
+        old_apply: Callable[[_T1, Document], Iterable[_T2]],
+    ) -> Callable[[_T1, Document], Iterable[_T2]]:
         @wraps(old_apply)
-        def new_apply(self: _T1, document: Document) -> Iterable[_T3]:
+        def new_apply(self: _T1, document: Document) -> Iterable[_T2]:
             if isinstance(document, list):
                 for item in document:
                     yield from old_apply(self, item)
@@ -110,93 +125,3 @@ class Pattern(ABC):
             yield from old_apply(self, document)
 
         return new_apply
-
-
-@final
-class NeverPattern(Pattern):
-    def apply(self, document: Document) -> Iterable[None]:
-        return iter(())
-
-    def __getitem__(self, __key: int | str) -> Self:
-        return self
-
-    def __copy__(self) -> Self:
-        return NeverPattern()
-
-    def __repr__(self) -> str:
-        return type(self).__name__
-
-
-@final
-class OrPattern(Pattern, Generic[_T1, _T2]):
-    def __init__(self, left_pattern: _T1, right_pattern: _T2) -> None:
-        self.__left_pattern = left_pattern
-        self.__right_pattern = right_pattern
-
-    def apply(self, document: Document) -> Iterable[Document]:
-        yield from self.__left_pattern.apply(document)
-        yield from self.__right_pattern.apply(document)
-
-    def __getitem__(self, __key: int | str) -> Self:
-        return OrPattern(self.__left_pattern[__key], self.__right_pattern[__key])
-
-    def __getattr__(self, __name: str) -> Any:
-        left_attr = getattr(self.__left_pattern, __name, None)
-        right_attr = getattr(self.__right_pattern, __name, None)
-
-        if isinstance(left_attr, Pattern) and isinstance(right_attr, Pattern):
-            return OrPattern(left_attr, right_attr)
-
-        if left_attr is not None:
-            return left_attr
-
-        if right_attr is not None:
-            return right_attr
-
-        raise AttributeError(__name)
-
-    def __copy__(self) -> Self:
-        return OrPattern(self.__left_pattern, self.__right_pattern)
-
-    def __repr__(self) -> str:
-        left_repr = repr(self.__left_pattern).split("\n")
-        right_repr = repr(self.__right_pattern).split("\n")
-
-        left_repr = "\n".join("    " + line for line in left_repr)
-        right_repr = "\n".join("    " + line for line in right_repr)
-
-        return f"{type(self).__name__}:\n{left_repr}\n{right_repr}"
-
-
-@final
-class ThenPattern(Pattern, Generic[_T1, _T2]):
-    def __init__(self, left_pattern: _T1, right_pattern: _T2) -> None:
-        self.__left_pattern = left_pattern
-        self.__right_pattern = right_pattern
-
-    def apply(self, document: Document) -> Iterable[Document]:
-        for result in self.__left_pattern.apply(document):
-            yield from self.__right_pattern.apply(result)
-
-    def __getitem__(self, __key: int | str) -> Self:
-        return ThenPattern(self.__left_pattern, self.__right_pattern[__key])
-
-    def __getattr__(self, __name: str) -> Any:
-        attr = getattr(self.__right_pattern, __name)
-
-        if isinstance(attr, Pattern):
-            return ThenPattern(self.__left_pattern, attr)
-
-        return attr
-
-    def __copy__(self) -> Self:
-        return ThenPattern(self.__left_pattern, self.__right_pattern)
-
-    def __repr__(self) -> str:
-        left_repr = repr(self.__left_pattern).split("\n")
-        right_repr = repr(self.__right_pattern).split("\n")
-
-        left_repr = "\n".join("    " + line for line in left_repr)
-        right_repr = "\n".join("    " + line for line in right_repr)
-
-        return f"{type(self).__name__}:\n{left_repr}\n{right_repr}"

@@ -6,7 +6,7 @@ from typing import Generic, Self, final
 
 from typing_extensions import TypeVar
 
-from yamlang.pattern.pattern import NeverPattern, Pattern
+from yamlang.pattern.pattern import Pattern
 from yamlang.yamltools import Document
 
 _T = TypeVar("_T", None, bool, int, float, str, default=None, infer_variance=True)
@@ -20,10 +20,6 @@ class ScalarPattern(Pattern, Generic[_T]):
     @abstractmethod
     def apply(self, document: Document) -> Iterable[_T]:
         raise NotImplementedError
-
-    @final
-    def __getitem__(self, __key: int | str) -> NeverPattern:
-        return NeverPattern()
 
     @final
     def __copy__(self) -> Self:

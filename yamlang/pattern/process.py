@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Generic, Self, cast, final
+from typing import Any, Self, cast, final
 
 from typing_extensions import TypeVar
 
@@ -13,8 +13,8 @@ _T = TypeVar("_T", bound=Pattern, default=Pattern, infer_variance=True)
 
 
 @final
-class ParsePattern(Pattern, Generic[_T]):
-    def __init__(self, pattern: _T, from_file: bool) -> None:
+class ParsePattern(Pattern):
+    def __init__(self, pattern: Pattern, from_file: bool) -> None:
         self.__pattern = pattern
         self.__from_file = from_file
 
