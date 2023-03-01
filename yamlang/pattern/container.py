@@ -6,7 +6,7 @@ from typing import Generic, Self, cast, final, overload
 
 from typing_extensions import TypeVar
 
-from yamlang.pattern.pattern import NeverPattern, Pattern
+from yamlang.pattern.pattern import NeverPattern, Pattern, lift
 from yamlang.yamltools import Document
 
 _T1 = TypeVar("_T1", bound=Pattern, default=Pattern, infer_variance=True)
@@ -61,12 +61,8 @@ class DictPattern(Pattern, Generic[_T1]):
         }
 
     @final
+    @lift
     def apply(self, document: Document) -> Iterable[dict[str, Document]]:
-        if isinstance(document, list):
-            for item in document:
-                yield from self.apply(item)
-            return
-
         if not isinstance(document, dict):
             return
 

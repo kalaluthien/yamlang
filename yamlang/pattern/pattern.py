@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
 from copy import copy
+from functools import wraps
 from types import MethodType
 from typing import Any, Generic, Self, final, overload
 
@@ -12,6 +13,7 @@ from yamlang.yamltools import Document
 
 _T1 = TypeVar("_T1", bound="Pattern", default="Pattern", infer_variance=True)
 _T2 = TypeVar("_T2", bound="Pattern", default="Pattern", infer_variance=True)
+_T3 = TypeVar("_T3", bound=Document, default=Document, infer_variance=True)
 
 
 class Pattern(ABC):
@@ -211,3 +213,18 @@ class ThenPattern(Pattern, Generic[_T1, _T2]):
         right_repr = "\n".join("    " + line for line in right_repr)
 
         return f"{type(self).__name__}:\n{left_repr}\n{right_repr}"
+
+
+def lift(
+    apply: Callable[[_T1, Document], Iterable[_T3]],
+) -> Callable[[_T1, Document], Iterable[_T3]]:
+    @wraps(apply)
+    def new_apply(self: _T1, document: Document) -> Iterable[_T3]:
+        if isinstance(document, list):
+            for item in document:
+                yield from apply(self, item)
+            return
+
+        yield from apply(self, document)
+
+    return new_apply

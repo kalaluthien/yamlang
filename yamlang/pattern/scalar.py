@@ -6,7 +6,7 @@ from typing import Generic, Self, final
 
 from typing_extensions import TypeVar
 
-from yamlang.pattern.pattern import NeverPattern, Pattern
+from yamlang.pattern.pattern import NeverPattern, Pattern, lift
 from yamlang.yamltools import Document
 
 _T = TypeVar("_T", None, bool, int, float, str, default=None, infer_variance=True)
@@ -36,12 +36,8 @@ class ScalarPattern(Pattern, Generic[_T]):
 
 @final
 class BoolPattern(ScalarPattern[bool]):
+    @lift
     def apply(self, document: Document) -> Iterable[bool]:
-        if isinstance(document, list):
-            for item in document:
-                yield from self.apply(item)
-            return
-
         if not isinstance(document, bool):
             return
 
@@ -51,12 +47,8 @@ class BoolPattern(ScalarPattern[bool]):
 
 @final
 class IntPattern(ScalarPattern[int]):
+    @lift
     def apply(self, document: Document) -> Iterable[int]:
-        if isinstance(document, list):
-            for item in document:
-                yield from self.apply(item)
-            return
-
         if not isinstance(document, int):
             return
 
@@ -69,12 +61,8 @@ class IntPattern(ScalarPattern[int]):
 
 @final
 class FloatPattern(ScalarPattern[float]):
+    @lift
     def apply(self, document: Document) -> Iterable[float]:
-        if isinstance(document, list):
-            for item in document:
-                yield from self.apply(item)
-            return
-
         if not isinstance(document, float):
             return
 
@@ -84,12 +72,8 @@ class FloatPattern(ScalarPattern[float]):
 
 @final
 class StrPattern(ScalarPattern[str]):
+    @lift
     def apply(self, document: Document) -> Iterable[str]:
-        if isinstance(document, list):
-            for item in document:
-                yield from self.apply(item)
-            return
-
         if not isinstance(document, str):
             return
 
